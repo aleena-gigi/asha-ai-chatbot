@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Login() {
@@ -9,6 +9,12 @@ export default function Login() {
     password: '',
     rememberMe: false,
   });
+  
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -29,24 +35,26 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
+    <div className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-dark-800 via-dark-700 to-dark-900 -z-10"></div>
+      <div className="absolute top-20 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-secondary-500/10 rounded-full blur-3xl -z-10"></div>
+      
+      <div className={`sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <h2 className="text-center text-4xl font-bold text-gradient glow mb-2">
+          Welcome Back
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link href="/signup" className="font-medium text-primary-600 hover:text-primary-500">
-            create a new account
-          </Link>
+        <p className="text-center text-dark-100">
+          Sign in to continue your career journey
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className={`mt-8 sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="card-glass border border-dark-500/50 backdrop-blur-md">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email address
               </label>
               <div className="mt-1">
@@ -59,12 +67,13 @@ export default function Login() {
                   value={formData.email}
                   onChange={handleChange}
                   className="input"
+                  placeholder="your.email@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-white">
                 Password
               </label>
               <div className="mt-1">
@@ -77,6 +86,7 @@ export default function Login() {
                   value={formData.password}
                   onChange={handleChange}
                   className="input"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
@@ -89,16 +99,16 @@ export default function Login() {
                   type="checkbox"
                   checked={formData.rememberMe}
                   onChange={handleChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  className="h-4 w-4 bg-dark-600 border-dark-400 rounded focus:ring-offset-dark-800 focus:ring-primary-500"
                 />
-                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-dark-100">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
-                  Forgot your password?
+                <a href="#" className="font-medium text-primary-400 hover:text-primary-300 transition-colors">
+                  Forgot password?
                 </a>
               </div>
             </div>
@@ -116,10 +126,10 @@ export default function Login() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-dark-500" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-dark-700 text-dark-200">Or continue with</span>
               </div>
             </div>
 
@@ -127,7 +137,7 @@ export default function Login() {
               <div>
                 <a
                   href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300"
                 >
                   <span className="sr-only">Sign in with Google</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -139,7 +149,7 @@ export default function Login() {
               <div>
                 <a
                   href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300"
                 >
                   <span className="sr-only">Sign in with LinkedIn</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
@@ -152,6 +162,15 @@ export default function Login() {
                 </a>
               </div>
             </div>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-dark-100 text-sm">
+              Don't have an account?{' '}
+              <Link href="/signup" className="font-medium text-primary-400 hover:text-primary-300 transition-colors">
+                Sign up
+              </Link>
+            </p>
           </div>
         </div>
       </div>

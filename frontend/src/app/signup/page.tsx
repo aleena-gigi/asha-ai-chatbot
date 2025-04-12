@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function SignUp() {
   const [step, setStep] = useState(1);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,6 +17,10 @@ export default function SignUp() {
     yearsOfExperience: '',
     resume: null as File | null,
   });
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const interestOptions = [
     'Technology', 'Healthcare', 'Finance', 'Education', 
@@ -69,12 +74,7 @@ export default function SignUp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // In a real application, you would send the data to your backend
     console.log('Form submitted:', formData);
-    
-    // Redirect to chat page after successful signup
-    // router.push('/chat');
   };
 
   const nextStep = () => {
@@ -86,43 +86,45 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create your account
+    <div className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-dark-800 via-dark-700 to-dark-900 -z-10"></div>
+      <div className="absolute top-20 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-secondary-500/10 rounded-full blur-3xl -z-10"></div>
+      
+      <div className={`sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <h2 className="text-center text-4xl font-bold text-gradient glow mb-2">
+          Join Asha AI
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="font-medium text-primary-600 hover:text-primary-500">
-            Sign in
-          </Link>
+        <p className="text-center text-dark-100">
+          Create your account to start your career journey
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className={`mt-8 sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="card-glass border border-dark-500/50 backdrop-blur-md">
           <div className="mb-6">
             <div className="flex justify-between items-center">
               {[1, 2, 3].map((stepNumber) => (
                 <div key={stepNumber} className="flex flex-col items-center">
                   <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${
                       step >= stepNumber 
-                        ? 'bg-primary-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                        ? 'bg-primary-500 text-white shadow-glow-sm' 
+                        : 'bg-dark-600 text-dark-300 border border-dark-500'
                     }`}
                   >
                     {stepNumber}
                   </div>
-                  <div className="text-xs mt-1">
+                  <div className={`text-xs mt-1 ${step >= stepNumber ? 'text-white' : 'text-dark-300'}`}>
                     {stepNumber === 1 ? 'Account' : stepNumber === 2 ? 'Profile' : 'Resume'}
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-2 h-1 w-full bg-gray-200 rounded">
+            <div className="mt-2 h-1 w-full bg-dark-600 rounded">
               <div 
-                className="h-full bg-primary-600 rounded transition-all duration-300"
+                className="h-full bg-primary-500 rounded transition-all duration-500"
                 style={{ width: `${((step - 1) / 2) * 100}%` }}
               ></div>
             </div>
@@ -130,71 +132,83 @@ export default function SignUp() {
 
           <form onSubmit={handleSubmit}>
             {step === 1 && (
-              <div>
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-white">
                     Full Name
                   </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  />
-                </div>
-
-                <div className="mb-6">
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  />
+                  <div className="mt-1">
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="input"
+                      placeholder="Your full name"
+                    />
+                  </div>
                 </div>
 
                 <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-white">
+                    Email address
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="input"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-white">
+                    Password
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="input"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
+                    Confirm Password
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="input"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4">
                   <button
                     type="button"
                     onClick={nextStep}
@@ -207,9 +221,9 @@ export default function SignUp() {
             )}
 
             {step === 2 && (
-              <div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">
                     Interests (Select all that apply)
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -218,11 +232,11 @@ export default function SignUp() {
                         <input
                           id={`interest-${interest}`}
                           type="checkbox"
-                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          className="h-4 w-4 bg-dark-600 border-dark-400 rounded focus:ring-offset-dark-800 focus:ring-primary-500"
                           checked={formData.interests.includes(interest)}
                           onChange={() => handleInterestToggle(interest)}
                         />
-                        <label htmlFor={`interest-${interest}`} className="ml-2 block text-sm text-gray-700">
+                        <label htmlFor={`interest-${interest}`} className="ml-2 block text-sm text-dark-100">
                           {interest}
                         </label>
                       </div>
@@ -230,28 +244,30 @@ export default function SignUp() {
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="career" className="block text-sm font-medium text-gray-700">
+                <div>
+                  <label htmlFor="career" className="block text-sm font-medium text-white">
                     Current/Desired Career Field
                   </label>
-                  <select
-                    id="career"
-                    name="career"
-                    required
-                    value={formData.career}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  >
-                    <option value="">Select a career field</option>
-                    {careerOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="mt-1">
+                    <select
+                      id="career"
+                      name="career"
+                      required
+                      value={formData.career}
+                      onChange={handleChange}
+                      className="input"
+                    >
+                      <option value="">Select a career field</option>
+                      {careerOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="mb-4">
+                <div>
                   <div className="flex items-center">
                     <input
                       id="careerBreak"
@@ -259,36 +275,38 @@ export default function SignUp() {
                       type="checkbox"
                       checked={formData.careerBreak}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 bg-dark-600 border-dark-400 rounded focus:ring-offset-dark-800 focus:ring-primary-500"
                     />
-                    <label htmlFor="careerBreak" className="ml-2 block text-sm text-gray-700">
+                    <label htmlFor="careerBreak" className="ml-2 block text-sm text-dark-100">
                       Have you taken a career break?
                     </label>
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-gray-700">
+                <div>
+                  <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-white">
                     Years of Work Experience
                   </label>
-                  <select
-                    id="yearsOfExperience"
-                    name="yearsOfExperience"
-                    required
-                    value={formData.yearsOfExperience}
-                    onChange={handleChange}
-                    className="input mt-1"
-                  >
-                    <option value="">Select experience level</option>
-                    {experienceOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="mt-1">
+                    <select
+                      id="yearsOfExperience"
+                      name="yearsOfExperience"
+                      required
+                      value={formData.yearsOfExperience}
+                      onChange={handleChange}
+                      className="input"
+                    >
+                      <option value="">Select experience level</option>
+                      {experienceOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="pt-4 flex justify-between">
                   <button
                     type="button"
                     onClick={prevStep}
@@ -308,15 +326,15 @@ export default function SignUp() {
             )}
 
             {step === 3 && (
-              <div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">
                     Resume/CV (Optional)
                   </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dark-500 border-dashed rounded-md bg-dark-700/50">
                     <div className="space-y-1 text-center">
                       <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-dark-300"
                         stroke="currentColor"
                         fill="none"
                         viewBox="0 0 48 48"
@@ -329,10 +347,10 @@ export default function SignUp() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <div className="flex text-sm text-gray-600">
+                      <div className="flex text-sm text-dark-200">
                         <label
                           htmlFor="resume"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                          className="relative cursor-pointer rounded-md font-medium text-primary-400 hover:text-primary-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 focus-within:ring-offset-dark-800"
                         >
                           <span>Upload a file</span>
                           <input
@@ -346,17 +364,17 @@ export default function SignUp() {
                         </label>
                         <p className="pl-1">or drag and drop</p>
                       </div>
-                      <p className="text-xs text-gray-500">PDF, DOC, DOCX up to 10MB</p>
+                      <p className="text-xs text-dark-300">PDF, DOC, DOCX up to 10MB</p>
                     </div>
                   </div>
                   {formData.resume && (
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-dark-100">
                       Selected file: {formData.resume.name}
                     </p>
                   )}
                 </div>
 
-                <div className="flex justify-between">
+                <div className="pt-4 flex justify-between">
                   <button
                     type="button"
                     onClick={prevStep}
@@ -366,7 +384,7 @@ export default function SignUp() {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="btn btn-neon"
                   >
                     Create Account
                   </button>

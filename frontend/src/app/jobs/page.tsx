@@ -1,293 +1,357 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
-type Job = {
+interface Job {
   id: string;
   title: string;
   company: string;
   location: string;
-  type: 'Full-time' | 'Part-time' | 'Contract' | 'Remote';
+  type: string;
   salary: string;
+  posted: string;
   description: string;
-  postedDate: Date;
-  tags: string[];
-};
+  skills: string[];
+}
 
-export default function Jobs() {
-  const [isLoaded, setIsLoaded] = useState(false);
+export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<string>('');
-  const [filterLocation, setFilterLocation] = useState<string>('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedExperience, setSelectedExperience] = useState('');
   
-  // Sample jobs data
-  const [jobs, setJobs] = useState<Job[]>([
+  // Sample job data
+  const jobs: Job[] = [
     {
       id: '1',
-      title: 'Senior Software Engineer',
-      company: 'TechCorp',
-      location: 'San Francisco, CA',
+      title: 'Senior Frontend Developer',
+      company: 'TechCorp Solutions',
+      location: 'Bangalore',
       type: 'Full-time',
-      salary: '$120,000 - $150,000',
-      description: 'We are looking for a Senior Software Engineer to join our team and help build our next-generation products.',
-      postedDate: new Date('2025-04-05'),
-      tags: ['JavaScript', 'TypeScript', 'React', 'Node.js'],
+      salary: '₹18-25 LPA',
+      posted: '2 days ago',
+      description: 'We are looking for an experienced Frontend Developer proficient in React, TypeScript, and modern CSS frameworks.',
+      skills: ['React', 'TypeScript', 'Tailwind CSS', 'Next.js'],
     },
     {
       id: '2',
-      title: 'UX/UI Designer',
-      company: 'DesignHub',
+      title: 'Data Scientist',
+      company: 'Analytics India',
       location: 'Remote',
-      type: 'Remote',
-      salary: '$90,000 - $110,000',
-      description: 'Join our creative team as a UX/UI Designer and help create beautiful, user-friendly interfaces for our clients.',
-      postedDate: new Date('2025-04-08'),
-      tags: ['UX', 'UI', 'Figma', 'Design Systems'],
+      type: 'Full-time',
+      salary: '₹15-22 LPA',
+      posted: '1 week ago',
+      description: 'Join our data science team to build machine learning models and analyze large datasets for business insights.',
+      skills: ['Python', 'Machine Learning', 'SQL', 'Data Visualization'],
     },
     {
       id: '3',
-      title: 'Data Scientist',
-      company: 'DataWorks',
-      location: 'New York, NY',
+      title: 'Product Manager',
+      company: 'InnovateTech',
+      location: 'Mumbai',
       type: 'Full-time',
-      salary: '$130,000 - $160,000',
-      description: 'We are seeking a Data Scientist to help us analyze and interpret complex data to drive business decisions.',
-      postedDate: new Date('2025-04-10'),
-      tags: ['Python', 'Machine Learning', 'SQL', 'Statistics'],
+      salary: '₹20-30 LPA',
+      posted: '3 days ago',
+      description: 'Lead product development initiatives and work closely with engineering, design, and marketing teams.',
+      skills: ['Product Strategy', 'Agile', 'User Research', 'Roadmapping'],
     },
     {
       id: '4',
-      title: 'Product Manager',
-      company: 'ProductLabs',
-      location: 'Austin, TX',
-      type: 'Full-time',
-      salary: '$110,000 - $140,000',
-      description: 'Join our team as a Product Manager and help shape the future of our products.',
-      postedDate: new Date('2025-04-07'),
-      tags: ['Product Management', 'Agile', 'Leadership'],
+      title: 'DevOps Engineer',
+      company: 'CloudNative Systems',
+      location: 'Hyderabad',
+      type: 'Contract',
+      salary: '₹14-20 LPA',
+      posted: '5 days ago',
+      description: 'Implement and maintain CI/CD pipelines, manage cloud infrastructure, and optimize deployment processes.',
+      skills: ['AWS', 'Docker', 'Kubernetes', 'Jenkins', 'Terraform'],
     },
     {
       id: '5',
-      title: 'DevOps Engineer',
-      company: 'CloudTech',
-      location: 'Remote',
-      type: 'Remote',
-      salary: '$100,000 - $130,000',
-      description: 'We are looking for a DevOps Engineer to help us build and maintain our cloud infrastructure.',
-      postedDate: new Date('2025-04-09'),
-      tags: ['DevOps', 'AWS', 'Docker', 'Kubernetes'],
+      title: 'UX/UI Designer',
+      company: 'DesignFirst',
+      location: 'Delhi',
+      type: 'Part-time',
+      salary: '₹8-12 LPA',
+      posted: '1 day ago',
+      description: 'Create user-centered designs for web and mobile applications with a focus on usability and accessibility.',
+      skills: ['Figma', 'User Research', 'Prototyping', 'Design Systems'],
     },
-  ]);
+    {
+      id: '6',
+      title: 'Backend Developer',
+      company: 'ServerStack',
+      location: 'Pune',
+      type: 'Full-time',
+      salary: '₹16-24 LPA',
+      posted: '4 days ago',
+      description: 'Develop robust backend services and APIs using Node.js and MongoDB to support our growing platform.',
+      skills: ['Node.js', 'Express', 'MongoDB', 'REST APIs', 'GraphQL'],
+    },
+  ];
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  // Filter jobs based on search term and filters
+  // Filter jobs based on search and filters
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = 
+    const matchesSearch =
+      searchTerm === '' ||
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesType = filterType ? job.type === filterType : true;
-    const matchesLocation = filterLocation 
-      ? filterLocation === 'Remote' 
-        ? job.location === 'Remote' 
-        : job.location.includes(filterLocation)
-      : true;
-    
-    return matchesSearch && matchesType && matchesLocation;
+      job.skills.some((skill) => skill.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesLocation =
+      selectedLocation === '' || job.location === selectedLocation;
+
+    const matchesType = selectedType === '' || job.type === selectedType;
+
+    // For simplicity, we're not implementing experience filtering in this demo
+    const matchesExperience = true;
+
+    return matchesSearch && matchesLocation && matchesType && matchesExperience;
   });
 
-  // Get unique job types and locations for filters
-  const jobTypes = Array.from(new Set(jobs.map(job => job.type)));
-  const jobLocations = Array.from(new Set(jobs.map(job => 
-    job.location === 'Remote' ? 'Remote' : job.location.split(',')[0].trim()
-  )));
-
-  // Format date to relative time (e.g., "2 days ago")
-  const formatRelativeDate = (date: Date) => {
-    const now = new Date();
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffInDays === 0) return 'Today';
-    if (diffInDays === 1) return 'Yesterday';
-    if (diffInDays < 7) return `${diffInDays} days ago`;
-    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
-    return `${Math.floor(diffInDays / 30)} months ago`;
-  };
+  // Get unique locations and job types for filters
+  const locations = Array.from(new Set(jobs.map((job) => job.location)));
+  const jobTypes = Array.from(new Set(jobs.map((job) => job.type)));
 
   return (
-    <div className="min-h-screen bg-dark-900">
-      {/* Header */}
-      <div className="relative bg-gradient-to-br from-dark-800 to-dark-900 py-16">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary-500/10 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 relative">
-          <div className={`max-w-3xl mx-auto text-center transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-gradient glow">Job Opportunities</span>
-            </h1>
-            <p className="text-xl text-dark-100 mb-8">
-              Discover career opportunities tailored to your skills and experience
-            </p>
-            
-            {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto">
-              <input
-                type="text"
-                placeholder="Search jobs by title, company, or skills..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input py-3 pl-12 pr-4 w-full shadow-lg"
-              />
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-dark-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
+    <div className="space-y-8">
+      <div className="bg-wp-gradient-4 py-12 px-4 rounded-xl shadow-card">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            Find Your <span className="text-gradient-job">Dream Job</span>
+          </h1>
+          <p className="text-foreground/80 mb-8 max-w-2xl mx-auto">
+            Discover opportunities that match your skills and career goals with our AI-powered job matching
+          </p>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-foreground/50"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
             </div>
+            <input
+              type="text"
+              placeholder="Search jobs, skills, or companies..."
+              className="input-search w-full py-3 pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
       </div>
-      
-      {/* Filters and Job Listings */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Filters */}
-          <div className="w-full md:w-64">
-            <div className="card-glass sticky top-20">
-              <h2 className="text-xl font-semibold mb-4">Filters</h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Filters */}
+        <div className="lg:col-span-1">
+          <div className="job-filter">
+            <h2 className="font-semibold text-lg mb-4">Filters</h2>
+            
+            <div className="space-y-6">
+              {/* Location Filter */}
+              <div>
+                <h3 className="font-medium text-foreground/80 mb-2">Location</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="location-all"
+                      name="location"
+                      className="h-4 w-4 text-primary-500"
+                      checked={selectedLocation === ''}
+                      onChange={() => setSelectedLocation('')}
+                    />
+                    <label htmlFor="location-all" className="ml-2 text-foreground/70">
+                      All Locations
+                    </label>
+                  </div>
+                  {locations.map((location) => (
+                    <div key={location} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`location-${location}`}
+                        name="location"
+                        className="h-4 w-4 text-primary-500"
+                        checked={selectedLocation === location}
+                        onChange={() => setSelectedLocation(location)}
+                      />
+                      <label htmlFor={`location-${location}`} className="ml-2 text-foreground/70">
+                        {location}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-white mb-2">
-                  Job Type
-                </label>
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="input"
-                >
-                  <option value="">All Types</option>
+              {/* Job Type Filter */}
+              <div>
+                <h3 className="font-medium text-foreground/80 mb-2">Job Type</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="type-all"
+                      name="type"
+                      className="h-4 w-4 text-primary-500"
+                      checked={selectedType === ''}
+                      onChange={() => setSelectedType('')}
+                    />
+                    <label htmlFor="type-all" className="ml-2 text-foreground/70">
+                      All Types
+                    </label>
+                  </div>
                   {jobTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <div key={type} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`type-${type}`}
+                        name="type"
+                        className="h-4 w-4 text-primary-500"
+                        checked={selectedType === type}
+                        onChange={() => setSelectedType(type)}
+                      />
+                      <label htmlFor={`type-${type}`} className="ml-2 text-foreground/70">
+                        {type}
+                      </label>
+                    </div>
                   ))}
-                </select>
+                </div>
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-white mb-2">
-                  Location
-                </label>
-                <select
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
-                  className="input"
-                >
-                  <option value="">All Locations</option>
-                  {jobLocations.map((location) => (
-                    <option key={location} value={location}>{location}</option>
+              {/* Experience Level Filter */}
+              <div>
+                <h3 className="font-medium text-foreground/80 mb-2">Experience Level</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="exp-all"
+                      name="experience"
+                      className="h-4 w-4 text-primary-500"
+                      checked={selectedExperience === ''}
+                      onChange={() => setSelectedExperience('')}
+                    />
+                    <label htmlFor="exp-all" className="ml-2 text-foreground/70">
+                      All Levels
+                    </label>
+                  </div>
+                  {['Entry Level', 'Mid Level', 'Senior Level'].map((exp) => (
+                    <div key={exp} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`exp-${exp.replace(' ', '-').toLowerCase()}`}
+                        name="experience"
+                        className="h-4 w-4 text-primary-500"
+                        checked={selectedExperience === exp}
+                        onChange={() => setSelectedExperience(exp)}
+                      />
+                      <label
+                        htmlFor={`exp-${exp.replace(' ', '-').toLowerCase()}`}
+                        className="ml-2 text-foreground/70"
+                      >
+                        {exp}
+                      </label>
+                    </div>
                   ))}
-                </select>
-              </div>
-              
-              <button
-                onClick={() => {
-                  setFilterType('');
-                  setFilterLocation('');
-                  setSearchTerm('');
-                }}
-                className="btn btn-outline w-full mt-4"
-              >
-                Reset Filters
-              </button>
-            </div>
-          </div>
-          
-          {/* Job Listings */}
-          <div className="flex-1">
-            <div className="mb-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold">
-                {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
-              </h2>
-              <div className="text-dark-200 text-sm">
-                Sorted by: <span className="text-primary-400">Most Recent</span>
+                </div>
               </div>
             </div>
             
-            <div className="space-y-4">
-              {filteredJobs.length > 0 ? (
-                filteredJobs.map((job) => (
-                  <div key={job.id} className="card-interactive">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                      <h3 className="text-xl font-semibold text-white">{job.title}</h3>
-                      <div className="mt-2 md:mt-0 flex items-center">
-                        <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                          job.type === 'Remote' 
-                            ? 'bg-accent-500/20 text-accent-300' 
-                            : job.type === 'Full-time' 
-                              ? 'bg-primary-500/20 text-primary-300' 
-                              : job.type === 'Part-time' 
-                                ? 'bg-secondary-500/20 text-secondary-300' 
-                                : 'bg-dark-500/50 text-dark-200'
-                        }`}>
-                          {job.type}
-                        </span>
-                        <span className="text-dark-300 text-sm ml-4">{formatRelativeDate(job.postedDate)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <div className="flex items-center text-dark-100 mb-2">
-                        <span className="mr-2">{job.company}</span>
-                        <span className="mx-2">•</span>
-                        <span>{job.location}</span>
-                        <span className="mx-2">•</span>
-                        <span>{job.salary}</span>
-                      </div>
-                    </div>
-                    
-                    <p className="text-dark-100 mb-4">{job.description}</p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {job.tags.map((tag) => (
-                        <span 
-                          key={tag} 
-                          className="text-xs bg-dark-600 text-dark-100 px-2 py-1 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-4 flex justify-end">
-                      <button className="btn btn-primary">Apply Now</button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="card-glass text-center py-12">
-                  <p className="text-dark-100 mb-4">No jobs found matching your criteria.</p>
-                  <button
-                    onClick={() => {
-                      setFilterType('');
-                      setFilterLocation('');
-                      setSearchTerm('');
-                    }}
-                    className="btn btn-outline"
-                  >
-                    Reset Filters
-                  </button>
-                </div>
-              )}
+            <div className="mt-6 pt-6 border-t border-senary-200">
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedLocation('');
+                  setSelectedType('');
+                  setSelectedExperience('');
+                }}
+                className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+              >
+                Clear all filters
+              </button>
             </div>
           </div>
+        </div>
+        
+        {/* Job Listings */}
+        <div className="lg:col-span-3">
+          <div className="mb-4 flex justify-between items-center">
+            <h2 className="font-semibold text-lg">
+              {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
+            </h2>
+            <div className="text-sm text-foreground/70">
+              Sorted by: <span className="font-medium">Most Relevant</span>
+            </div>
+          </div>
+          
+          {filteredJobs.length > 0 ? (
+            <div className="space-y-4">
+              {filteredJobs.map((job) => (
+                <div key={job.id} className="card-job">
+                  <div className="flex justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold">{job.title}</h3>
+                      <p className="text-foreground/70">{job.company} • {job.location}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-primary-600 font-semibold">{job.salary}</p>
+                      <p className="text-sm text-foreground/60">{job.posted}</p>
+                    </div>
+                  </div>
+                  
+                  <p className="mt-3 text-foreground/80">{job.description}</p>
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {job.skills.map((skill) => (
+                      <span key={skill} className="job-tag">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-6 flex justify-between items-center">
+                    <Link href={`/jobs/${job.id}`} className="text-primary-600 hover:text-primary-700 font-medium">
+                      View Details
+                    </Link>
+                    <button className="wp-button">
+                      Apply Now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="card text-center py-12">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
+              <p className="text-foreground/70 mb-6">
+                Try adjusting your search or filters to find more opportunities
+              </p>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedLocation('');
+                  setSelectedType('');
+                  setSelectedExperience('');
+                }}
+                className="wp-button"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

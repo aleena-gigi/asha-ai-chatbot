@@ -2,11 +2,27 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navigation() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect for navigation
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrolled]);
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -17,12 +33,16 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-dark-800 border-b border-dark-600 backdrop-blur-sm shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrolled 
+        ? 'bg-white/90 backdrop-blur-md shadow-soft' 
+        : 'bg-white/70 backdrop-blur-sm'
+    } border-b border-senary-200`}>
+      <div className="wp-container">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-gradient glow">
+              <Link href="/" className="text-xl font-bold text-gradient-animated glow">
                 Asha AI
               </Link>
             </div>
@@ -31,8 +51,8 @@ export default function Navigation() {
                 href="/"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
                   isActive('/') 
-                    ? 'border-primary-500 text-white' 
-                    : 'border-transparent text-dark-100 hover:border-dark-300 hover:text-white'
+                    ? 'border-primary-500 text-foreground' 
+                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
                 }`}
               >
                 Home
@@ -41,8 +61,8 @@ export default function Navigation() {
                 href="/chat"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
                   isActive('/chat') 
-                    ? 'border-primary-500 text-white' 
-                    : 'border-transparent text-dark-100 hover:border-dark-300 hover:text-white'
+                    ? 'border-primary-500 text-foreground' 
+                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
                 }`}
               >
                 Chat
@@ -51,8 +71,8 @@ export default function Navigation() {
                 href="/jobs"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
                   isActive('/jobs') 
-                    ? 'border-primary-500 text-white' 
-                    : 'border-transparent text-dark-100 hover:border-dark-300 hover:text-white'
+                    ? 'border-primary-500 text-foreground' 
+                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
                 }`}
               >
                 Jobs
@@ -61,8 +81,8 @@ export default function Navigation() {
                 href="/events"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
                   isActive('/events') 
-                    ? 'border-primary-500 text-white' 
-                    : 'border-transparent text-dark-100 hover:border-dark-300 hover:text-white'
+                    ? 'border-primary-500 text-foreground' 
+                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
                 }`}
               >
                 Events
@@ -71,11 +91,11 @@ export default function Navigation() {
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="ml-3 relative">
-              <div>
-                <Link href="/login" className="text-dark-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+              <div className="flex items-center space-x-3">
+                <Link href="/login" className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
                   Login
                 </Link>
-                <Link href="/signup" className="ml-2 btn btn-neon">
+                <Link href="/signup" className="wp-button">
                   Sign Up
                 </Link>
               </div>
@@ -86,7 +106,7 @@ export default function Navigation() {
             <button
               type="button"
               onClick={toggleMobileMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-dark-100 hover:text-white hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-300"
+              className="inline-flex items-center justify-center p-2 rounded-md text-foreground/70 hover:text-foreground hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-300"
               aria-expanded={isMobileMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
@@ -128,14 +148,14 @@ export default function Navigation() {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-dark-700 border-b border-dark-600`}>
+      <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-white/90 backdrop-blur-sm border-b border-senary-200`}>
         <div className="pt-2 pb-3 space-y-1">
           <Link
             href="/"
             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
               isActive('/') 
-                ? 'bg-dark-600 border-primary-500 text-white' 
-                : 'border-transparent text-dark-100 hover:bg-dark-600 hover:border-dark-300 hover:text-white'
+                ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
             }`}
           >
             Home
@@ -144,8 +164,8 @@ export default function Navigation() {
             href="/chat"
             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
               isActive('/chat') 
-                ? 'bg-dark-600 border-primary-500 text-white' 
-                : 'border-transparent text-dark-100 hover:bg-dark-600 hover:border-dark-300 hover:text-white'
+                ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
             }`}
           >
             Chat
@@ -154,8 +174,8 @@ export default function Navigation() {
             href="/jobs"
             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
               isActive('/jobs') 
-                ? 'bg-dark-600 border-primary-500 text-white' 
-                : 'border-transparent text-dark-100 hover:bg-dark-600 hover:border-dark-300 hover:text-white'
+                ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
             }`}
           >
             Jobs
@@ -164,40 +184,40 @@ export default function Navigation() {
             href="/events"
             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
               isActive('/events') 
-                ? 'bg-dark-600 border-primary-500 text-white' 
-                : 'border-transparent text-dark-100 hover:bg-dark-600 hover:border-dark-300 hover:text-white'
+                ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
             }`}
           >
             Events
           </Link>
         </div>
-        <div className="pt-4 pb-3 border-t border-dark-500">
+        <div className="pt-4 pb-3 border-t border-senary-200">
           <div className="flex items-center px-4">
             <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white">
+              <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-green-glow">
                 <span className="text-sm font-medium">JD</span>
               </div>
             </div>
             <div className="ml-3">
-              <div className="text-base font-medium text-white">John Doe</div>
-              <div className="text-sm font-medium text-dark-100">john@example.com</div>
+              <div className="text-base font-medium text-foreground">John Doe</div>
+              <div className="text-sm font-medium text-foreground/60">john@example.com</div>
             </div>
           </div>
           <div className="mt-3 space-y-1">
             <Link
               href="/profile"
-              className="block px-4 py-2 text-base font-medium text-dark-100 hover:text-white hover:bg-dark-600"
+              className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
             >
               Your Profile
             </Link>
             <Link
               href="/settings"
-              className="block px-4 py-2 text-base font-medium text-dark-100 hover:text-white hover:bg-dark-600"
+              className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
             >
               Settings
             </Link>
             <button
-              className="block w-full text-left px-4 py-2 text-base font-medium text-dark-100 hover:text-white hover:bg-dark-600"
+              className="block w-full text-left px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
             >
               Sign out
             </button>

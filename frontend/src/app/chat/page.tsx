@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+// Remove unused import
 
 interface Message {
   id: string;
@@ -11,25 +11,46 @@ interface Message {
 }
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hello! I'm Asha, your AI career companion. How can I help you with your professional journey today?",
-      sender: 'bot',
-      timestamp: new Date(),
-    },
-  ]);
+  // Initialize state with useEffect to avoid hydration mismatch
+  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Initialize messages after component mounts to avoid hydration issues
+  useEffect(() => {
+    setMessages([
+      {
+        id: '1',
+        text: "Hello! I'm Asha, your AI career companion. How can I help you with your professional journey today?",
+        sender: 'bot',
+        timestamp: new Date(),
+      },
+    ]);
+  }, []);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'end',
+      inline: 'nearest'
+    });
   };
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Also scroll to bottom on initial load
+  useEffect(() => {
+    // Small delay to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,15 +99,16 @@ export default function ChatPage() {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    try {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      // Fallback for server-side rendering
+      return '';
+    }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)]">
-      <div className="bg-white rounded-t-xl shadow-card p-4 border-b border-senary-200">
-        <h1 className="text-xl font-bold text-gradient">Chat with Asha AI</h1>
-        <p className="text-foreground/70 text-sm">Your AI-powered career companion</p>
-      </div>
+    <div className="flex flex-col h-full">
       
       <div className="flex-1 overflow-y-auto p-4 bg-secondary-50">
         <div className="space-y-4">
@@ -129,7 +151,7 @@ export default function ChatPage() {
                     <span className="text-primary-700 text-xs font-bold">A</span>
                   </div>
                   <span className="text-xs text-foreground/60">
-                    Asha AI • {formatTime(new Date())}
+                    Asha AI • typing...
                   </span>
                 </div>
                 <div className="flex space-x-2">
@@ -145,7 +167,7 @@ export default function ChatPage() {
         </div>
       </div>
       
-      <div className="bg-white rounded-b-xl shadow-card p-4 border-t border-senary-200">
+      <div className="bg-white rounded-b-xl shadow-card p-4 border-t border-senary-200 sticky bottom-0 z-10">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
           <input
             type="text"

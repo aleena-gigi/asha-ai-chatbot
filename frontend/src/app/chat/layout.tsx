@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
+import ChatSidebar from '@/components/ChatSidebar';
 
 export const metadata: Metadata = {
   title: 'Asha AI Chat',
@@ -14,8 +12,14 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-dark-900 flex flex-col">
-      {children}
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Chat sidebar */}
+      <ChatSidebar />
+      
+      {/* Main chat area */}
+      <div className="flex-1">
+        {children}
+      </div>
     </div>
   );
 }

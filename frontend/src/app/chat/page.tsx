@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-// Remove unused import
+import SuggestionCard from '@/components/SuggestionCard';
+import MessageBubble from '@/components/MessageBubble';
+import { suggestionCards } from '@/data/suggestionCards';
+import { ChatInput } from '../../components/ui';
 
 interface Message {
   id: string;
@@ -27,21 +30,7 @@ export default function ChatPage() {
   }, []);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [textareaHeight, setTextareaHeight] = useState(50);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Auto-resize textarea as user types
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      const newHeight = Math.min(scrollHeight, 200);
-      textarea.style.height = `${newHeight}px`;
-      setTextareaHeight(newHeight);
-    }
-  }, [inputValue]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ 
@@ -112,127 +101,52 @@ export default function ChatPage() {
     }, 1500);
   };
 
-  const formatTime = (date: Date) => {
-    try {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (error) {
-      // Fallback for server-side rendering
-      return '';
-    }
-  };
 
   return (
     <div className="flex flex-col h-full">
       
       <div className="flex-1 overflow-y-auto py-4 bg-secondary-50">
-        <div className="max-w-6xl mx-auto px-2 sm:px-6 md:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
           <div className="space-y-4">
             {messages.map((message) => (
-              <div
+              <MessageBubble
                 key={message.id}
-                className={`flex ${
-                  message.sender === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[80%] md:max-w-[70%] rounded-2xl p-4 ${
-                    message.sender === 'user'
-                      ? 'bg-primary-500 text-white rounded-tr-none'
-                      : 'bg-white shadow-card rounded-tl-none'
-                  }`}
-                >
-                  <div className="flex items-center mb-1">
-                    {message.sender === 'bot' && (
-                      <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center mr-2">
-                        <span className="text-primary-700 text-xs font-bold">A</span>
-                      </div>
-                    )}
-                    <span className={`text-xs ${message.sender === 'user' ? 'text-white/80' : 'text-foreground/60'}`}>
-                      {message.sender === 'user' ? 'You' : 'Asha AI'} • {formatTime(message.timestamp)}
-                    </span>
-                  </div>
-                <p className={`${message.sender === 'user' ? 'text-white' : 'text-foreground'} break-words overflow-hidden whitespace-normal break-all`}>
-                  {message.text}
-                </p>
-                </div>
-              </div>
+                text={message.text}
+                sender={message.sender}
+                timestamp={message.timestamp}
+              />
             ))}
             
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white rounded-2xl rounded-tl-none p-4 shadow-card max-w-[80%] md:max-w-[70%]">
-                  <div className="flex items-center mb-1">
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center mr-2">
-                      <span className="text-primary-700 text-xs font-bold">A</span>
-                    </div>
-                    <span className="text-xs text-foreground/60">
-                      Asha AI • typing...
-                    </span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-primary-300 animate-bounce"></div>
-                    <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {isLoading && <MessageBubble text="" sender="bot" timestamp={new Date()} isLoading={true} />}
             
             <div ref={messagesEndRef} />
           </div>
         </div>
       </div>
       
-      <div className="bg-secondary-50 rounded-b-xl border-senary-200 sticky bottom-0 z-10 py-4">
-        <div className="max-w-6xl px-8 mx-auto  border-senary-100">
-          <div className='max-w-6xl mx-auto px-2 sm:px-6 md:px-8 bg-white sm:p-6 md:p-4 shadow-card rounded-3xl'>
-            <form onSubmit={handleSendMessage} className="relative align-middle flex items-center">
-              <textarea
-                ref={textareaRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your message..."
-                className="w-full p-3 pr-12 bg-transparent border-0 focus:outline-none focus:border-0 focus:ring-0 transition-all duration-300 min-h-[50px] max-h-[200px] resize-none text-base"
-                disabled={isLoading}
-                rows={1}
-                style={{
-                  overflowY: 'auto',
-                  outline: 'none',
-                  border: 'none'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (inputValue.trim()) {
-                      handleSendMessage(e);
-                    }
-                  }
-                }}
+      <div className="bg-secondary-50 rounded-b-xl border-senary-200 sticky bottom-0 z-10 py-3">
+        {/* Quick Reply Suggestion Cards */}
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 mb-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pb-2">
+            {suggestionCards.map((card) => (
+              <SuggestionCard
+                key={card.id}
+                icon={card.icon}
+                text={card.text}
+                onClick={() => setInputValue(card.prompt)}
               />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-primary-500 text-white rounded-full transition-all duration-200 hover:bg-primary-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading || !inputValue.trim()}
-              >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                style={{ transform: 'rotate(90deg)' }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-
-              </svg>
-              </button>
-            </form>
+            ))}
           </div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 border-senary-100">
+          <ChatInput
+            value={inputValue}
+            onChange={setInputValue}
+            onSend={handleSendMessage}
+            disabled={isLoading}
+            className="shadow-card rounded-3xl sm:p-4 md:p-3"
+          />
           <div className="mt-2 text-xs text-foreground/50 text-center">
             Asha AI is here to help with your career questions and job search
           </div>

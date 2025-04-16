@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import NavItem from './NavItem';
+import { mainNavigationItems, userNavigationItems, authNavigationItems } from '@/data/navigationItems';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -42,61 +44,37 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-gradient-animated glow">
+              <Link 
+                href="/" 
+                className="text-xl font-bold text-gradient-animated glow hover:opacity-80 transition-opacity"
+                aria-label="Home"
+              >
                 Asha AI
               </Link>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
-              <Link
-                href="/"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
-                  isActive('/') 
-                    ? 'border-primary-500 text-foreground' 
-                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
-                }`}
-              >
-                Home
-              </Link>
-              <Link
-                href="/chat"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
-                  isActive('/chat') 
-                    ? 'border-primary-500 text-foreground' 
-                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
-                }`}
-              >
-                Chat
-              </Link>
-              <Link
-                href="/jobs"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
-                  isActive('/jobs') 
-                    ? 'border-primary-500 text-foreground' 
-                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
-                }`}
-              >
-                Jobs
-              </Link>
-              <Link
-                href="/events"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-300 ${
-                  isActive('/events') 
-                    ? 'border-primary-500 text-foreground' 
-                    : 'border-transparent text-foreground/70 hover:border-primary-300 hover:text-foreground'
-                }`}
-              >
-                Events
-              </Link>
+              {mainNavigationItems.map((item) => (
+                <NavItem
+                  key={item.id}
+                  path={item.path}
+                  label={item.label}
+                  isActive={isActive(item.path)}
+                  icon={item.icon}
+                />
+              ))}
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="ml-3 relative">
               <div className="flex items-center space-x-3">
-                <Link href="/login" className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
-                  Login
+                <Link 
+                  href={authNavigationItems[0].path} 
+                  className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300"
+                >
+                  {authNavigationItems[0].label}
                 </Link>
-                <Link href="/signup" className="wp-button">
-                  Sign Up
+                <Link href={authNavigationItems[1].path} className="wp-button">
+                  {authNavigationItems[1].label}
                 </Link>
               </div>
             </div>
@@ -150,46 +128,16 @@ export default function Navigation() {
       {/* Mobile menu, show/hide based on menu state */}
       <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-white/90 backdrop-blur-sm border-b border-senary-200`}>
         <div className="pt-2 pb-3 space-y-1">
-          <Link
-            href="/"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
-              isActive('/') 
-                ? 'bg-primary-50 border-primary-500 text-primary-700' 
-                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
-            }`}
-          >
-            Home
-          </Link>
-          <Link
-            href="/chat"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
-              isActive('/chat') 
-                ? 'bg-primary-50 border-primary-500 text-primary-700' 
-                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
-            }`}
-          >
-            Chat
-          </Link>
-          <Link
-            href="/jobs"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
-              isActive('/jobs') 
-                ? 'bg-primary-50 border-primary-500 text-primary-700' 
-                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
-            }`}
-          >
-            Jobs
-          </Link>
-          <Link
-            href="/events"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-300 ${
-              isActive('/events') 
-                ? 'bg-primary-50 border-primary-500 text-primary-700' 
-                : 'border-transparent text-foreground/70 hover:bg-secondary-50 hover:border-primary-300 hover:text-foreground'
-            }`}
-          >
-            Events
-          </Link>
+          {mainNavigationItems.map((item) => (
+            <NavItem
+              key={item.id}
+              path={item.path}
+              label={item.label}
+              isActive={isActive(item.path)}
+              isMobile={true}
+              icon={item.icon}
+            />
+          ))}
         </div>
         <div className="pt-4 pb-3 border-t border-senary-200">
           <div className="flex items-center px-4">
@@ -204,18 +152,19 @@ export default function Navigation() {
             </div>
           </div>
           <div className="mt-3 space-y-1">
-            <Link
-              href="/profile"
-              className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
-            >
-              Your Profile
-            </Link>
-            <Link
-              href="/settings"
-              className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
-            >
-              Settings
-            </Link>
+            {/* User navigation items */}
+            {userNavigationItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.path}
+                className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
+              >
+                <div className="flex items-center">
+                  {item.icon && <span className="mr-2">{item.icon}</span>}
+                  {item.label}
+                </div>
+              </Link>
+            ))}
             <button
               className="block w-full text-left px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
             >

@@ -10,7 +10,11 @@ interface AddButtonProps {
 export default function AddButton({ onClick, label }: AddButtonProps) {
   return (
     <button 
-      onClick={onClick}
+      type="button" // Explicitly set type to button to prevent form submission
+      onClick={(e) => {
+        e.preventDefault(); // Prevent default form submission
+        onClick();
+      }}
       className="text-primary-500 hover:text-primary-400 flex items-center transition-colors"
       aria-label={label}
     >

@@ -24,6 +24,36 @@ export interface ResumeBuilderProps {
   showSubmitButton?: boolean;
 }
 
+interface EducationEntry {
+  id: number;
+  degree: string;
+  institution: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface ExperienceEntry {
+  id: number;
+  jobTitle: string;
+  employer: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+interface ProjectEntry {
+  id: number;
+  title: string;
+  link: string;
+  description: string;
+}
+
+interface LanguageEntry {
+  id: number;
+  name: string;
+  proficiency: string;
+}
+
 export default function ResumeBuilder({ 
   initialData = {}, 
   compact = false,
@@ -32,15 +62,6 @@ export default function ResumeBuilder({
   showSubmitButton = true
 }: ResumeBuilderProps) {
   const [activeSection, setActiveSection] = useState('personal');
-  const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
-  const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
-  const [skills, setSkills] = useState<string[]>([]);
-  const [hobbies, setHobbies] = useState<string[]>([]);
-  const [projectEntries, setProjectEntries] = useState([{ id: 1 }]);
-  const [languageEntries, setLanguageEntries] = useState([
-    { id: 1, name: '', proficiency: 'Native' }
-  ]);
-  
   const [formData, setFormData] = useState({
     personal: {
       name: initialData.name || '',
@@ -51,22 +72,39 @@ export default function ResumeBuilder({
     summary: {
       text: '',
     },
+    education: [{ 
+      id: 1, 
+      degree: '', 
+      institution: '', 
+      startDate: '', 
+      endDate: '' 
+    }] as EducationEntry[],
+    experience: [{ 
+      id: 1, 
+      jobTitle: '', 
+      employer: '', 
+      startDate: '', 
+      endDate: '', 
+      description: '' 
+    }] as ExperienceEntry[],
+    skills: [] as string[],
+    hobbies: [] as string[],
+    projects: [{ 
+      id: 1, 
+      title: '', 
+      link: '', 
+      description: '' 
+    }] as ProjectEntry[],
+    languages: [{ 
+      id: 1, 
+      name: '', 
+      proficiency: 'Native' 
+    }] as LanguageEntry[]
   });
 
   const handleSubmit = () => {
-    const resumeData = {
-      personal: formData.personal,
-      summary: formData.summary,
-      education: educationEntries,
-      experience: experienceEntries,
-      skills,
-      hobbies,
-      projects: projectEntries,
-      languages: languageEntries,
-    };
-    
     if (onSubmit) {
-      onSubmit(resumeData);
+      onSubmit(formData);
     }
   };
 
@@ -96,6 +134,42 @@ export default function ResumeBuilder({
       summary: {
         text: value
       }
+    });
+  };
+
+  const updateEducationField = (entryId: number, field: string, value: string) => {
+    setFormData({
+      ...formData,
+      education: formData.education.map(entry => 
+        entry.id === entryId ? { ...entry, [field]: value } : entry
+      )
+    });
+  };
+
+  const updateExperienceField = (entryId: number, field: string, value: string) => {
+    setFormData({
+      ...formData,
+      experience: formData.experience.map(entry => 
+        entry.id === entryId ? { ...entry, [field]: value } : entry
+      )
+    });
+  };
+
+  const updateProjectField = (entryId: number, field: string, value: string) => {
+    setFormData({
+      ...formData,
+      projects: formData.projects.map(entry => 
+        entry.id === entryId ? { ...entry, [field]: value } : entry
+      )
+    });
+  };
+
+  const updateLanguageField = (entryId: number, field: string, value: string) => {
+    setFormData({
+      ...formData,
+      languages: formData.languages.map(entry => 
+        entry.id === entryId ? { ...entry, [field]: value } : entry
+      )
     });
   };
   
@@ -188,14 +262,18 @@ export default function ResumeBuilder({
           
           {activeSection === 'education' && (
             <ResumeSection title="Education">
-              {educationEntries.map((entry, index) => (
+              {formData.education.map((entry, index) => (
                 <ResumeEntryCard
                   key={entry.id}
                   title="Education"
                   index={index}
                   onRemove={() => {
-                    const newEntries = educationEntries.filter(item => item.id !== entry.id);
-                    setEducationEntries(newEntries);
+                    if (formData.education.length > 1) {
+                      setFormData({
+                        ...formData,
+                        education: formData.education.filter(item => item.id !== entry.id)
+                      });
+                    }
                   }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -203,29 +281,46 @@ export default function ResumeBuilder({
                       label="Degree" 
                       placeholder="Bachelor of Science" 
                       required 
+                      value={entry.degree}
+                      onChange={(e) => updateEducationField(entry.id, 'degree', e.target.value)}
                     />
                     <InputField 
                       label="Institution" 
                       placeholder="University Name" 
                       required 
+                      value={entry.institution}
+                      onChange={(e) => updateEducationField(entry.id, 'institution', e.target.value)}
                     />
                     <InputField 
                       label="Start Date" 
                       type="month" 
                       required 
+                      value={entry.startDate}
+                      onChange={(e) => updateEducationField(entry.id, 'startDate', e.target.value)}
                     />
                     <InputField 
                       label="End Date" 
                       type="month" 
                       required 
+                      value={entry.endDate}
+                      onChange={(e) => updateEducationField(entry.id, 'endDate', e.target.value)}
                     />
                   </div>
                 </ResumeEntryCard>
               ))}
               <AddButton 
                 onClick={() => {
-                  const newId = Math.max(...educationEntries.map(entry => entry.id), 0) + 1;
-                  setEducationEntries([...educationEntries, { id: newId }]);
+                  const newId = Math.max(...formData.education.map(entry => entry.id), 0) + 1;
+                  setFormData({
+                    ...formData,
+                    education: [...formData.education, { 
+                      id: newId, 
+                      degree: '', 
+                      institution: '', 
+                      startDate: '', 
+                      endDate: '' 
+                    }]
+                  });
                 }}
                 label="Add Another Education"
               />
@@ -234,14 +329,18 @@ export default function ResumeBuilder({
           
           {activeSection === 'experience' && (
             <ResumeSection title="Work Experience">
-              {experienceEntries.map((entry, index) => (
+              {formData.experience.map((entry, index) => (
                 <ResumeEntryCard
                   key={entry.id}
                   title="Experience"
                   index={index}
                   onRemove={() => {
-                    const newEntries = experienceEntries.filter(item => item.id !== entry.id);
-                    setExperienceEntries(newEntries);
+                    if (formData.experience.length > 1) {
+                      setFormData({
+                        ...formData,
+                        experience: formData.experience.filter(item => item.id !== entry.id)
+                      });
+                    }
                   }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -249,21 +348,29 @@ export default function ResumeBuilder({
                       label="Job Title" 
                       placeholder="Software Engineer" 
                       required 
+                      value={entry.jobTitle}
+                      onChange={(e) => updateExperienceField(entry.id, 'jobTitle', e.target.value)}
                     />
                     <InputField 
                       label="Employer" 
                       placeholder="Company Name" 
                       required 
+                      value={entry.employer}
+                      onChange={(e) => updateExperienceField(entry.id, 'employer', e.target.value)}
                     />
                     <InputField 
                       label="Start Date" 
                       type="month" 
                       required 
+                      value={entry.startDate}
+                      onChange={(e) => updateExperienceField(entry.id, 'startDate', e.target.value)}
                     />
                     <InputField 
                       label="End Date" 
                       type="month" 
                       required 
+                      value={entry.endDate}
+                      onChange={(e) => updateExperienceField(entry.id, 'endDate', e.target.value)}
                     />
                   </div>
                   <div className="mt-4">
@@ -271,14 +378,26 @@ export default function ResumeBuilder({
                       label="Description" 
                       placeholder="Describe your responsibilities and achievements..." 
                       required 
+                      value={entry.description}
+                      onChange={(e) => updateExperienceField(entry.id, 'description', e.target.value)}
                     />
                   </div>
                 </ResumeEntryCard>
               ))}
               <AddButton 
                 onClick={() => {
-                  const newId = Math.max(...experienceEntries.map(entry => entry.id), 0) + 1;
-                  setExperienceEntries([...experienceEntries, { id: newId }]);
+                  const newId = Math.max(...formData.experience.map(entry => entry.id), 0) + 1;
+                  setFormData({
+                    ...formData,
+                    experience: [...formData.experience, { 
+                      id: newId, 
+                      jobTitle: '', 
+                      employer: '', 
+                      startDate: '', 
+                      endDate: '', 
+                      description: '' 
+                    }]
+                  });
                 }}
                 label="Add Another Experience"
               />
@@ -291,8 +410,8 @@ export default function ResumeBuilder({
                 <h3 className="font-bold mb-2 text-white">Skills</h3>
                 <TagInput
                   label="Skills"
-                  tags={skills}
-                  setTags={setSkills}
+                  tags={formData.skills}
+                  setTags={(tags) => setFormData({...formData, skills: tags})}
                   placeholder="Type a skill and press Enter (e.g. JavaScript, Python)"
                   required
                 />
@@ -304,8 +423,8 @@ export default function ResumeBuilder({
                 <h3 className="font-bold mb-2 text-white">Hobbies</h3>
                 <TagInput
                   label="Hobbies"
-                  tags={hobbies}
-                  setTags={setHobbies}
+                  tags={formData.hobbies}
+                  setTags={(tags) => setFormData({...formData, hobbies: tags})}
                   placeholder="Type a hobby and press Enter (e.g. Reading, Photography)"
                 />
                 <p className="text-sm text-foreground/60 mt-1">
@@ -317,14 +436,18 @@ export default function ResumeBuilder({
           
           {activeSection === 'projects' && (
             <ResumeSection title="Projects">
-              {projectEntries.map((entry, index) => (
+              {formData.projects.map((entry, index) => (
                 <ResumeEntryCard
                   key={entry.id}
                   title="Project"
                   index={index}
                   onRemove={() => {
-                    const newEntries = projectEntries.filter(item => item.id !== entry.id);
-                    setProjectEntries(newEntries);
+                    if (formData.projects.length > 1) {
+                      setFormData({
+                        ...formData,
+                        projects: formData.projects.filter(item => item.id !== entry.id)
+                      });
+                    }
                   }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,10 +455,14 @@ export default function ResumeBuilder({
                       label="Title" 
                       placeholder="Project Name" 
                       required 
+                      value={entry.title}
+                      onChange={(e) => updateProjectField(entry.id, 'title', e.target.value)}
                     />
                     <InputField 
                       label="Link" 
                       placeholder="https://github.com/username/project" 
+                      value={entry.link}
+                      onChange={(e) => updateProjectField(entry.id, 'link', e.target.value)}
                     />
                   </div>
                   <div className="mt-4">
@@ -343,14 +470,24 @@ export default function ResumeBuilder({
                       label="Description" 
                       placeholder="Describe your project, technologies used, and your role..." 
                       required 
+                      value={entry.description}
+                      onChange={(e) => updateProjectField(entry.id, 'description', e.target.value)}
                     />
                   </div>
                 </ResumeEntryCard>
               ))}
               <AddButton 
                 onClick={() => {
-                  const newId = Math.max(...projectEntries.map(entry => entry.id), 0) + 1;
-                  setProjectEntries([...projectEntries, { id: newId }]);
+                  const newId = Math.max(...formData.projects.map(entry => entry.id), 0) + 1;
+                  setFormData({
+                    ...formData,
+                    projects: [...formData.projects, { 
+                      id: newId, 
+                      title: '', 
+                      link: '', 
+                      description: '' 
+                    }]
+                  });
                 }}
                 label="Add Another Project"
               />
@@ -359,40 +496,32 @@ export default function ResumeBuilder({
           
           {activeSection === 'languages' && (
             <ResumeSection title="Languages">
-              {languageEntries.map((entry) => (
+              {formData.languages.map((entry) => (
                 <div key={entry.id} className="flex mb-2">
                   <input 
                     type="text" 
                     className="w-full p-3 bg-dark-600 border border-dark-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300" 
                     placeholder={entry.id === 1 ? "English" : `Language #${entry.id}`}
                     value={entry.name}
-                    onChange={(e) => {
-                      const updatedEntries = languageEntries.map(item => 
-                        item.id === entry.id ? { ...item, name: e.target.value } : item
-                      );
-                      setLanguageEntries(updatedEntries);
-                    }}
+                    onChange={(e) => updateLanguageField(entry.id, 'name', e.target.value)}
                   />
                   <select 
                     className="mx-2 p-3 bg-dark-600 border border-dark-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300"
                     value={entry.proficiency}
-                    onChange={(e) => {
-                      const updatedEntries = languageEntries.map(item => 
-                        item.id === entry.id ? { ...item, proficiency: e.target.value } : item
-                      );
-                      setLanguageEntries(updatedEntries);
-                    }}
+                    onChange={(e) => updateLanguageField(entry.id, 'proficiency', e.target.value)}
                   >
                     <option>Native</option>
                     <option>Fluent</option>
                     <option>Intermediate</option>
                     <option>Basic</option>
                   </select>
-                  {languageEntries.length > 1 && (
+                  {formData.languages.length > 1 && (
                     <button 
                       onClick={() => {
-                        const updatedEntries = languageEntries.filter(item => item.id !== entry.id);
-                        setLanguageEntries(updatedEntries);
+                        setFormData({
+                          ...formData,
+                          languages: formData.languages.filter(item => item.id !== entry.id)
+                        });
                       }}
                       className="text-red-500 hover:text-red-400 transition-colors"
                       aria-label={`Remove language ${entry.id}`}
@@ -404,8 +533,11 @@ export default function ResumeBuilder({
               ))}
               <AddButton 
                 onClick={() => {
-                  const newId = Math.max(...languageEntries.map(entry => entry.id), 0) + 1;
-                  setLanguageEntries([...languageEntries, { id: newId, name: '', proficiency: 'Native' }]);
+                  const newId = Math.max(...formData.languages.map(entry => entry.id), 0) + 1;
+                  setFormData({
+                    ...formData,
+                    languages: [...formData.languages, { id: newId, name: '', proficiency: 'Native' }]
+                  });
                 }}
                 label="Add Another Language"
               />

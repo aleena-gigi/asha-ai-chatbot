@@ -23,7 +23,11 @@ export default function ResumeEntryCard({
         <h3 className="font-bold text-white">{title} #{index + 1}</h3>
         {showRemove && index > 0 && onRemove && (
           <button 
-            onClick={onRemove}
+            type="button" // Explicitly set type to button to prevent form submission
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default form submission
+              onRemove();
+            }}
             className="text-red-500 hover:text-red-400 transition-colors"
             aria-label={`Remove ${title} ${index + 1}`}
           >

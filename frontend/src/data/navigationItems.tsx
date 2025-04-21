@@ -13,16 +13,16 @@ export const mainNavigationItems: NavigationItem[] = [
     path: '/chat',
     label: 'Chat',
   },
-  {
-    id: 'jobs',
-    path: '/jobs',
-    label: 'Jobs',
-  },
-  {
-    id: 'events',
-    path: '/events',
-    label: 'Events',
-  },
+  // {
+  //   id: 'jobs',
+  //   path: '/jobs',
+  //   label: 'Jobs',
+  // },
+  // {
+  //   id: 'events',
+  //   path: '/events',
+  //   label: 'Events',
+  // },
   {
     id: 'resume-builder',
     path: '/resume-builder',

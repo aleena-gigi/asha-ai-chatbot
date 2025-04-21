@@ -105,7 +105,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-full">
       
-      <div className="flex-1 overflow-y-auto py-4 bg-secondary-50">
+      <div className="flex-1 overflow-y-auto py-4 bg-dark-800">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -124,7 +124,7 @@ export default function ChatPage() {
         </div>
       </div>
       
-      <div className="bg-secondary-50 rounded-b-xl border-senary-200 sticky bottom-0 z-10 py-3">
+      <div className="bg-dark-800 rounded-b-xl border-dark-700 sticky bottom-0 z-10 py-3">
         {/* Quick Reply Suggestion Cards */}
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 mb-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pb-2">
@@ -139,7 +139,7 @@ export default function ChatPage() {
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 border-senary-100">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 border-dark-600">
           <ChatInput
             value={inputValue}
             onChange={setInputValue}

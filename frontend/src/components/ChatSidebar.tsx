@@ -58,8 +58,8 @@ export default function ChatSidebar() {
   };
 
   return (
-    <div className={`bg-white border-r border-senary-200 h-[calc(100vh-4rem)] flex flex-col transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
-      <div className="p-4 border-b border-senary-200 flex items-center justify-between">
+    <div className={`bg-dark-700 border-r border-dark-500 h-[calc(100vh-4rem)] flex flex-col transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+      <div className="p-4 border-b border-dark-500 flex items-center justify-between">
         <h2 className={`font-bold text-lg ${isCollapsed ? 'hidden' : 'block'}`}>Conversations</h2>
         <button 
           onClick={toggleSidebar}
@@ -99,8 +99,8 @@ export default function ChatSidebar() {
                   href={`/chat/${session.id}`}
                   className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
                     session.isActive 
-                      ? 'bg-primary-50 text-primary-700' 
-                      : 'hover:bg-secondary-50'
+                      ? 'bg-primary-500/20 text-white border border-primary-500/40' 
+                      : 'hover:bg-dark-600'
                   }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,10 +119,10 @@ export default function ChatSidebar() {
         </div>
       </div>
       
-      <div className={`p-3 border-t border-senary-200 ${isCollapsed ? 'hidden' : 'block'}`}>
+      <div className={`p-3 border-t border-dark-500 ${isCollapsed ? 'hidden' : 'block'}`}>
         <div className="flex items-center px-2 py-2">
-          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center mr-2">
-            <span className="text-primary-700 text-xs font-bold">A</span>
+          <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center mr-2">
+            <span className="text-white text-xs font-bold">A</span>
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Asha AI</p>

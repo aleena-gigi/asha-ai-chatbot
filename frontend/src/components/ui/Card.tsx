@@ -20,10 +20,10 @@ export default function Card({
   padding = 'md'
 }: CardProps) {
   // Base classes
-  const baseClasses = 'bg-white rounded-lg overflow-hidden';
+  const baseClasses = 'bg-dark-700 rounded-lg overflow-hidden';
   
   // Border classes
-  const borderClasses = bordered ? 'border border-gray-200' : '';
+  const borderClasses = bordered ? 'border border-dark-500' : '';
   
   // Shadow classes
   const shadowClasses = {
@@ -42,7 +42,7 @@ export default function Card({
   };
   
   // Hover classes
-  const hoverClasses = hoverable ? 'transition-all duration-200 hover:shadow-lg hover:border-primary-200' : '';
+  const hoverClasses = hoverable ? 'transition-all duration-200 hover:shadow-lg hover:border-primary-500' : '';
   
   // Clickable classes
   const clickableClasses = onClick ? 'cursor-pointer' : '';
@@ -66,7 +66,7 @@ Card.Header = function CardHeader({
   className?: string;
 }) {
   return (
-    <div className={`border-b border-gray-200 pb-3 mb-3 ${className}`}>
+    <div className={`border-b border-dark-500 pb-3 mb-3 ${className}`}>
       {children}
     </div>
   );
@@ -94,7 +94,7 @@ Card.Footer = function CardFooter({
   className?: string;
 }) {
   return (
-    <div className={`border-t border-gray-200 pt-3 mt-3 ${className}`}>
+    <div className={`border-t border-dark-500 pt-3 mt-3 ${className}`}>
       {children}
     </div>
   );

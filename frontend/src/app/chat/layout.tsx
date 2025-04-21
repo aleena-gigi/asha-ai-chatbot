@@ -17,7 +17,7 @@ export default function ChatLayout({
       <ChatSidebar />
       
       {/* Main chat area */}
-      <div className="flex-1">
+      <div className="flex-1 bg-dark-800">
         {children}
       </div>
     </div>

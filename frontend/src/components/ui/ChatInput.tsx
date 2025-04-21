@@ -33,14 +33,14 @@ export default function ChatInput({
   }, [value]);
   
   return (
-    <div className={`w-full bg-white p-3 shadow-md rounded-xl ${className}`}>
+    <div className={`w-full bg-dark-700 p-3 shadow-md rounded-xl ${className}`}>
       <form onSubmit={onSend} className="relative flex items-center">
         <textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full p-3 pr-12 bg-transparent border-0 focus:outline-none focus:border-0 focus:ring-0 transition-all duration-300 min-h-[50px] max-h-[200px] resize-none text-base"
+          className="w-full p-3 pr-12 bg-transparent border-0 focus:outline-none focus:border-0 focus:ring-0 transition-all duration-300 min-h-[50px] max-h-[200px] resize-none text-base text-white"
           disabled={disabled}
           rows={1}
           style={{
@@ -61,8 +61,8 @@ export default function ChatInput({
           type="submit"
           className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 focus:outline-none ${
             value.trim() && !disabled
-              ? 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              ? 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-700'
+              : 'bg-dark-600 text-gray-400 cursor-not-allowed'
           }`}
           disabled={disabled || !value.trim()}
         >

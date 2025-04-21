@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-b from-background to-secondary-200 text-foreground`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} text-foreground`}>
         <div className="min-h-screen flex flex-col">
           {/* Navigation component */}
           <Navigation />
@@ -35,7 +35,7 @@ export default function RootLayout({
           
           {/* Footer wrapped in client component that conditionally renders based on path */}
           <FooterWrapper>
-            <footer className="bg-white/80 backdrop-blur-sm border-t border-senary-200 py-8 mt-12">
+            <footer className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700 py-8 mt-12">
               <div className="wp-container">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div>

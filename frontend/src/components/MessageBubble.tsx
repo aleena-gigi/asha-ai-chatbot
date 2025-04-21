@@ -22,10 +22,10 @@ export default function MessageBubble({ text, sender, timestamp, isLoading = fal
   if (isLoading) {
     return (
       <div className="flex justify-start">
-        <div className="bg-white rounded-2xl rounded-tl-none p-4 shadow-card max-w-[80%] md:max-w-[70%]">
+        <div className="bg-dark-700 rounded-2xl rounded-tl-none p-4 shadow-lg max-w-[80%] md:max-w-[70%]">
           <div className="flex items-center mb-1">
-            <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center mr-2">
-              <span className="text-primary-700 text-xs font-bold">A</span>
+            <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center mr-2">
+              <span className="text-white text-xs font-bold">A</span>
             </div>
             <span className="text-xs text-foreground/60">
               Asha AI • typing...
@@ -51,13 +51,13 @@ export default function MessageBubble({ text, sender, timestamp, isLoading = fal
         className={`max-w-[80%] md:max-w-[70%] rounded-2xl p-4 ${
           sender === 'user'
             ? 'bg-primary-500 text-white rounded-tr-none'
-            : 'bg-white shadow-card rounded-tl-none'
+            : 'bg-dark-700 shadow-lg rounded-tl-none'
         }`}
       >
         <div className="flex items-center mb-1">
           {sender === 'bot' && (
-            <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center mr-2">
-              <span className="text-primary-700 text-xs font-bold">A</span>
+            <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center mr-2">
+              <span className="text-white text-xs font-bold">A</span>
             </div>
           )}
           <span className={`text-xs ${sender === 'user' ? 'text-white/80' : 'text-foreground/60'}`}>

@@ -37,9 +37,9 @@ export default function Navigation() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled 
-        ? 'bg-white/90 backdrop-blur-md shadow-soft' 
-        : 'bg-white/70 backdrop-blur-sm'
-    } border-b border-senary-200`}>
+        ? 'bg-dark-700/90 backdrop-blur-md shadow-md' 
+        : 'bg-dark-700/70 backdrop-blur-sm'
+    } border-b border-dark-600`}>
       <div className="wp-container">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -69,7 +69,7 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link 
                   href={authNavigationItems[0].path} 
-                  className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300"
+                  className="text-foreground/70 hover:text-primary-500 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300"
                 >
                   {authNavigationItems[0].label}
                 </Link>
@@ -84,7 +84,7 @@ export default function Navigation() {
             <button
               type="button"
               onClick={toggleMobileMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-foreground/70 hover:text-foreground hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-300"
+              className="inline-flex items-center justify-center p-2 rounded-md text-foreground/70 hover:text-foreground hover:bg-primary-500/20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-300"
               aria-expanded={isMobileMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
@@ -126,7 +126,7 @@ export default function Navigation() {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-white/90 backdrop-blur-sm border-b border-senary-200`}>
+      <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-dark-700/90 backdrop-blur-sm border-b border-dark-600`}>
         <div className="pt-2 pb-3 space-y-1">
           {mainNavigationItems.map((item) => (
             <NavItem
@@ -139,10 +139,10 @@ export default function Navigation() {
             />
           ))}
         </div>
-        <div className="pt-4 pb-3 border-t border-senary-200">
+        <div className="pt-4 pb-3 border-t border-dark-600">
           <div className="flex items-center px-4">
             <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-green-glow">
+              <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-neon">
                 <span className="text-sm font-medium">JD</span>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function Navigation() {
               <Link
                 key={item.id}
                 href={item.path}
-                className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
+                className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-primary-500/20"
               >
                 <div className="flex items-center">
                   {item.icon && <span className="mr-2">{item.icon}</span>}
@@ -166,7 +166,7 @@ export default function Navigation() {
               </Link>
             ))}
             <button
-              className="block w-full text-left px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-secondary-50"
+              className="block w-full text-left px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-primary-500/20"
             >
               Sign out
             </button>

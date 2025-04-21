@@ -32,7 +32,7 @@ export default function Button({
   iconPosition = 'left'
 }: ButtonProps) {
   // Base classes
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800';
   
   // Size classes
   const sizeClasses = {
@@ -43,11 +43,11 @@ export default function Button({
   
   // Variant classes
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 disabled:bg-primary-300',
-    secondary: 'bg-primary-100 text-primary-700 hover:bg-primary-200 focus:ring-primary-500 disabled:bg-primary-50 disabled:text-primary-400',
-    outline: 'border border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500 disabled:border-primary-300 disabled:text-primary-300',
-    danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:bg-red-300',
-    text: 'text-primary-500 hover:bg-primary-50 focus:ring-primary-500 disabled:text-primary-300'
+    primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 disabled:bg-primary-500/50',
+    secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 disabled:bg-secondary-500/50',
+    outline: 'border border-primary-500 text-primary-500 hover:bg-primary-500/10 focus:ring-primary-500 disabled:border-primary-500/50 disabled:text-primary-500/50',
+    danger: 'bg-error-500 text-white hover:bg-error-600 focus:ring-error-500 disabled:bg-error-400',
+    text: 'text-primary-500 hover:bg-primary-500/10 focus:ring-primary-500 disabled:text-primary-500/50'
   };
   
   // Width classes

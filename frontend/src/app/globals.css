@@ -10,8 +10,8 @@
 
 .dark {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 26, 27, 30;
-  --background-end-rgb: 20, 21, 23;
+  --background-start-rgb: 20, 21, 23;
+  --background-end-rgb: 14, 15, 17;
 }
 
 body {
@@ -22,10 +22,11 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  @apply bg-dark-800 text-white;
 }
 
 html {
-  @apply dark scroll-smooth;
+  @apply dark scroll-smooth bg-dark-800;
 }
 
 @layer base {

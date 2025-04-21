@@ -32,7 +32,7 @@ export default function Button({
   iconPosition = 'left'
 }: ButtonProps) {
   // Base classes
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800';
+  const baseClasses = 'inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-800';
   
   // Size classes
   const sizeClasses = {

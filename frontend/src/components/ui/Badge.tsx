@@ -35,11 +35,11 @@ export default function Badge({
   // Variant classes
   const variantClasses = {
     primary: 'bg-primary-800 text-primary-200',
-    secondary: 'bg-gray-700 text-gray-200',
-    success: 'bg-green-800 text-green-200',
-    danger: 'bg-red-800 text-red-200',
-    warning: 'bg-yellow-800 text-yellow-200',
-    info: 'bg-blue-800 text-blue-200'
+    secondary: 'bg-secondary-800 text-secondary-200',
+    success: 'bg-accent-800 text-accent-200',
+    danger: 'bg-error-800 text-error-200',
+    warning: 'bg-dark-600 text-dark-200',
+    info: 'bg-primary-700 text-primary-100'
   };
   
   // Combine all classes
@@ -53,7 +53,7 @@ export default function Badge({
         <button
           type="button"
           onClick={onRemove}
-          className={`ml-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-${variant === 'primary' ? 'primary' : variant}-500`}
+          className={`ml-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-800 focus:ring-${variant === 'primary' ? 'primary' : variant}-500`}
         >
           <svg 
             className="w-4 h-4" 

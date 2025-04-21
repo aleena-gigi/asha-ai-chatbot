@@ -5,7 +5,7 @@ import React from 'react';
 interface SectionNavItemProps {
   label: string;
   isActive: boolean;
-  onClick: () => void;
+  onClick: (e?: React.MouseEvent) => void;
 }
 
 export default function SectionNavItem({ label, isActive, onClick }: SectionNavItemProps) {

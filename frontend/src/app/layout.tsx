@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} text-foreground`}>
+      <body className={`${inter.className} text-foreground bg-dark-800`}>
         <div className="min-h-screen flex flex-col">
           {/* Navigation component */}
           <Navigation />
@@ -35,7 +35,7 @@ export default function RootLayout({
           
           {/* Footer wrapped in client component that conditionally renders based on path */}
           <FooterWrapper>
-            <footer className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700 py-8 mt-12">
+            <footer className="bg-dark-700/80 backdrop-blur-sm border-t border-dark-600 py-8 mt-12">
               <div className="wp-container">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div>
@@ -87,7 +87,7 @@ export default function RootLayout({
                   </div>
                 </div>
                 
-                <div className="mt-8 border-t border-senary-200 pt-6 text-center">
+                <div className="mt-8 border-t border-dark-600 pt-6 text-center">
                   <p className="text-foreground/60 text-sm">&copy; {new Date().getFullYear()} Asha AI. All rights reserved.</p>
                 </div>
               </div>

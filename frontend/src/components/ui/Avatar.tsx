@@ -52,7 +52,7 @@ export default function Avatar({
   };
   
   // Border classes
-  const borderClasses = bordered ? 'border-2 border-white' : '';
+  const borderClasses = bordered ? 'border-2 border-dark-500' : '';
   
   // Clickable classes
   const clickableClasses = onClick ? 'cursor-pointer' : '';
@@ -78,7 +78,7 @@ export default function Avatar({
           {initials}
         </div>
       ) : (
-        <div className="bg-gray-200 text-gray-500 w-full h-full flex items-center justify-center">
+        <div className="bg-dark-600 text-gray-300 w-full h-full flex items-center justify-center">
           <svg 
             className="w-1/2 h-1/2" 
             fill="currentColor" 
@@ -96,7 +96,7 @@ export default function Avatar({
       
       {status && (
         <span 
-          className={`absolute bottom-0 right-0 block rounded-full ring-2 ring-white ${statusClasses[status]} ${statusSizeClasses[size]}`}
+          className={`absolute bottom-0 right-0 block rounded-full ring-2 ring-dark-700 ${statusClasses[status]} ${statusSizeClasses[size]}`}
         />
       )}
     </div>

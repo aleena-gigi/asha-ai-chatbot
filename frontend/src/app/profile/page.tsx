@@ -102,12 +102,12 @@ export default function ProfilePage() {
   };
   
   return (
-    <div className="min-h-screen bg-secondary-50 py-16">
+    <div className="min-h-screen bg-dark-800 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-dark-700 rounded-xl shadow-md overflow-hidden border border-dark-500">
           <div className="md:flex">
             {/* Sidebar */}
-            <div className="md:w-1/4 bg-primary-50 p-6">
+            <div className="md:w-1/4 bg-dark-600 p-6">
               <div className="flex items-center mb-6">
                 <Avatar 
                   size="lg"
@@ -125,8 +125,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('personal')}
                   className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                     activeTab === 'personal' 
-                      ? 'bg-primary-100 text-primary-700' 
-                      : 'hover:bg-primary-100/50 text-foreground/70'
+                      ? 'bg-primary-500/20 text-primary-400' 
+                      : 'hover:bg-dark-500 text-foreground/70'
                   }`}
                 >
                   Personal Information
@@ -135,8 +135,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('resumes')}
                   className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                     activeTab === 'resumes' 
-                      ? 'bg-primary-100 text-primary-700' 
-                      : 'hover:bg-primary-100/50 text-foreground/70'
+                      ? 'bg-primary-500/20 text-primary-400' 
+                      : 'hover:bg-dark-500 text-foreground/70'
                   }`}
                 >
                   My Resumes

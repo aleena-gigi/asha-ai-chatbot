@@ -23,12 +23,12 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     ...props 
   }, ref) => {
     // Base classes
-    const baseTextAreaClasses = 'block p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all';
+    const baseTextAreaClasses = 'block p-2 border rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all';
     
     // Error classes
     const errorClasses = error 
-      ? 'border-red-500 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-300';
+      ? 'border-red-500 text-red-300 placeholder-red-300 focus:ring-red-500 focus:border-red-500' 
+      : 'border-gray-600';
     
     // Width classes
     const widthClasses = fullWidth ? 'w-full' : '';

@@ -113,10 +113,10 @@ export default function FileUpload({
       <div
         className={`border-2 border-dashed rounded-lg p-4 transition-colors ${
           dragActive 
-            ? 'border-primary-500 bg-primary-50' 
+            ? 'border-primary-500 bg-primary-500/10' 
             : error || sizeError 
-              ? 'border-red-500 bg-red-50' 
-              : 'border-gray-300 hover:border-primary-400'
+              ? 'border-red-500 bg-red-500/10' 
+              : 'border-gray-600 hover:border-primary-400'
         }`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
@@ -162,7 +162,7 @@ export default function FileUpload({
           <button
             type="button"
             onClick={handleButtonClick}
-            className="mt-4 px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
+            className="mt-4 px-4 py-2 bg-primary-500/20 text-primary-400 rounded-lg hover:bg-primary-500/30 transition-colors"
           >
             Select File{multiple ? 's' : ''}
           </button>
@@ -183,7 +183,7 @@ export default function FileUpload({
         <div className="mt-4 space-y-2">
           <p className="text-sm font-medium text-foreground/70">Selected Files:</p>
           {selectedFiles.map((file, index) => (
-            <div key={index} className="flex items-center justify-between bg-white p-2 rounded-lg border">
+            <div key={index} className="flex items-center justify-between bg-dark-600 p-2 rounded-lg border border-dark-500">
               <div className="flex items-center">
                 <svg 
                   className="w-5 h-5 text-primary-500 mr-2" 

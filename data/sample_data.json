@@ -1,0 +1,137 @@
+{
+  "job_listings": [
+    {
+      "id": 1,
+      "title": "Senior Software Engineer",
+      "company": "TechCorp",
+      "location": "Bangalore",
+      "job_type": "Full-time",
+      "description": "We are looking for a senior software engineer with experience in Python and React.",
+      "requirements": "5+ years of experience in software development. Strong knowledge of Python, React, and cloud technologies.",
+      "salary_range": "₹18-25 LPA",
+      "application_url": "https://example.com/apply/senior-dev",
+      "posted_date": "2025-03-15T10:00:00Z",
+      "closing_date": "2025-04-15T10:00:00Z",
+      "is_remote": true,
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "title": "Product Manager",
+      "company": "InnovateTech",
+      "location": "Mumbai",
+      "job_type": "Full-time",
+      "description": "Join our product team to lead the development of innovative solutions for women in tech.",
+      "requirements": "3+ years of product management experience. Experience with agile methodologies and user-centered design.",
+      "salary_range": "₹15-20 LPA",
+      "application_url": "https://example.com/apply/product-manager",
+      "posted_date": "2025-03-20T10:00:00Z",
+      "closing_date": "2025-04-20T10:00:00Z",
+      "is_remote": false,
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "title": "UX Designer",
+      "company": "DesignHub",
+      "location": "Delhi",
+      "job_type": "Contract",
+      "description": "Design user experiences for our flagship products focused on women's career development.",
+      "requirements": "Portfolio demonstrating UX design skills. Experience with Figma and user research.",
+      "salary_range": "₹12-18 LPA",
+      "application_url": "https://example.com/apply/ux-designer",
+      "posted_date": "2025-03-25T10:00:00Z",
+      "closing_date": "2025-04-25T10:00:00Z",
+      "is_remote": true,
+      "is_active": true
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Women in Tech Conference",
+      "description": "Annual conference celebrating women's achievements in technology and providing networking opportunities.",
+      "event_type": "Conference",
+      "start_datetime": "2025-05-15T09:00:00Z",
+      "end_datetime": "2025-05-17T18:00:00Z",
+      "location": "Hyderabad Convention Center",
+      "is_virtual": false,
+      "registration_url": "https://example.com/events/women-in-tech",
+      "organizer": "JobsForHer Foundation",
+      "max_participants": 500,
+      "is_free": false,
+      "price": 1500.0
+    },
+    {
+      "id": 2,
+      "title": "Resume Building Workshop",
+      "description": "Learn how to create an impactful resume that highlights your skills and experiences.",
+      "event_type": "Workshop",
+      "start_datetime": "2025-04-15T14:00:00Z",
+      "end_datetime": "2025-04-15T16:00:00Z",
+      "is_virtual": true,
+      "virtual_link": "https://zoom.us/j/example",
+      "registration_url": "https://example.com/events/resume-workshop",
+      "organizer": "JobsForHer Foundation",
+      "max_participants": 100,
+      "is_free": true
+    },
+    {
+      "id": 3,
+      "title": "Leadership Skills Webinar",
+      "description": "Develop essential leadership skills to advance your career in any industry.",
+      "event_type": "Webinar",
+      "start_datetime": "2025-04-22T15:00:00Z",
+      "end_datetime": "2025-04-22T16:00:00Z",
+      "is_virtual": true,
+      "virtual_link": "https://zoom.us/j/example-leadership",
+      "registration_url": "https://example.com/events/leadership-webinar",
+      "organizer": "JobsForHer Foundation",
+      "is_free": true
+    }
+  ],
+  "mentorship_programs": [
+    {
+      "id": 1,
+      "title": "Tech Leadership Mentorship",
+      "description": "One-on-one mentorship program focused on developing leadership skills for women in technology roles.",
+      "mentor_name": "Priya Sharma",
+      "mentor_bio": "Priya is a CTO with 15 years of experience in the tech industry. She has led teams at major tech companies and startups.",
+      "mentor_expertise": "Technology Leadership, Career Development, Team Management",
+      "duration": "3 months",
+      "start_date": "2025-05-15T00:00:00Z",
+      "application_deadline": "2025-04-30T00:00:00Z",
+      "is_active": true,
+      "application_url": "https://example.com/mentorship/tech-leadership",
+      "max_mentees": 5
+    },
+    {
+      "id": 2,
+      "title": "Product Management Essentials",
+      "description": "Learn the fundamentals of product management from experienced product leaders.",
+      "mentor_name": "Anjali Desai",
+      "mentor_bio": "Anjali has been a product manager for 10 years, working on consumer and enterprise products at leading tech companies.",
+      "mentor_expertise": "Product Strategy, User Research, Roadmap Planning",
+      "duration": "2 months",
+      "start_date": "2025-05-01T00:00:00Z",
+      "application_deadline": "2025-04-15T00:00:00Z",
+      "is_active": true,
+      "application_url": "https://example.com/mentorship/product-management",
+      "max_mentees": 10
+    },
+    {
+      "id": 3,
+      "title": "Career Transition to Tech",
+      "description": "Guidance for women looking to transition their careers into the technology sector.",
+      "mentor_name": "Meera Patel",
+      "mentor_bio": "Meera successfully transitioned from marketing to software engineering and now helps others make similar career changes.",
+      "mentor_expertise": "Career Transition, Skill Development, Job Search Strategy",
+      "duration": "4 months",
+      "start_date": "2025-06-01T00:00:00Z",
+      "application_deadline": "2025-05-15T00:00:00Z",
+      "is_active": true,
+      "application_url": "https://example.com/mentorship/career-transition",
+      "max_mentees": 8
+    }
+  ]
+}

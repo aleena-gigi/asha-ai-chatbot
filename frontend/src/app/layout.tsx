@@ -4,6 +4,8 @@ import './globals.css';
 import Navigation from '@/components/Navigation';
 import FooterWrapper from '@/components/FooterWrapper';
 import MainWrapper from '@/components/MainWrapper';
+import { Providers } from './providers';
+import RequireOnboardingComplete from '@/components/RequireOnboardingComplete';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -26,16 +28,19 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} text-foreground bg-dark-800`}>
         <div className="min-h-screen flex flex-col">
-          {/* Navigation component */}
-          <Navigation />
-          
-          <MainWrapper>
-            {children}
-          </MainWrapper>
-          
-          {/* Footer wrapped in client component that conditionally renders based on path */}
-          <FooterWrapper>
-            <footer className="bg-dark-700/80 backdrop-blur-sm border-t border-dark-600 py-8 mt-12">
+          <Providers>
+            {/* Navigation component */}
+            <Navigation />
+            
+            <MainWrapper>
+              <RequireOnboardingComplete>
+                {children}
+              </RequireOnboardingComplete>
+            </MainWrapper>
+            
+            {/* Footer wrapped in client component that conditionally renders based on path */}
+            <FooterWrapper>
+              <footer className="bg-dark-700/80 backdrop-blur-sm border-t border-dark-600 py-8 mt-12">
               <div className="wp-container">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div>
@@ -92,7 +97,8 @@ export default function RootLayout({
                 </div>
               </div>
             </footer>
-          </FooterWrapper>
+            </FooterWrapper>
+          </Providers>
         </div>
       </body>
     </html>

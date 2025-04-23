@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { 
   ResumeSection, 
   SectionNavItem, 
@@ -10,6 +10,7 @@ import {
   AddButton,
   TagInput
 } from '@/components/resume';
+import { submitResumeForm } from '@/services/resume';
 
 export interface ResumeBuilderProps {
   initialData?: {
@@ -22,6 +23,10 @@ export interface ResumeBuilderProps {
   onSubmit?: (resumeData: any) => void;
   submitButtonText?: string;
   showSubmitButton?: boolean;
+}
+
+export interface ResumeBuilderRef {
+  getFormData: () => any;
 }
 
 interface EducationEntry {
@@ -54,13 +59,13 @@ interface LanguageEntry {
   proficiency: string;
 }
 
-export default function ResumeBuilder({ 
+const ResumeBuilder = forwardRef<ResumeBuilderRef, ResumeBuilderProps>(({ 
   initialData = {}, 
   compact = false,
   onSubmit,
   submitButtonText = "Generate Resume",
   showSubmitButton = true
-}: ResumeBuilderProps) {
+}, ref) => {
   const [activeSection, setActiveSection] = useState('personal');
   const [formData, setFormData] = useState({
     personal: {
@@ -102,9 +107,45 @@ export default function ResumeBuilder({
     }] as LanguageEntry[]
   });
 
-  const handleSubmit = () => {
+  // Expose the form data to the parent component
+  useImperativeHandle(ref, () => ({
+    getFormData: () => formData
+  }));
+
+  const handleSubmit = async () => {
     if (onSubmit) {
       onSubmit(formData);
+      return;
+    }
+    
+    try {
+      // If no onSubmit prop is provided, use the resume service to submit the form
+      // This would typically be wrapped in authentication logic to get the user ID
+      const userId = "current-user-id"; // This would come from auth context or similar
+      
+      // Show loading state
+      // setIsSubmitting(true);
+      
+      // Submit the form data
+      const response = await submitResumeForm(formData, userId);
+      
+      // Handle success
+      if (response.success) {
+        // Show success message
+        alert("Resume submitted successfully!");
+        
+        // Optionally redirect to a success page or resume view
+        // router.push(`/resume/${response.resume_id}`);
+      } else {
+        // Show error message
+        alert(`Error: ${response.message}`);
+      }
+    } catch (error) {
+      // Show error message
+      alert(`Error submitting resume: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      // Hide loading state
+      // setIsSubmitting(false);
     }
   };
 
@@ -547,4 +588,6 @@ export default function ResumeBuilder({
       </div>
     </div>
   );
-}
+});
+
+export default ResumeBuilder;

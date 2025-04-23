@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import NavItem from './NavItem';
-import { mainNavigationItems, userNavigationItems, authNavigationItems } from '@/data/navigationItems';
+import UserMenu from './UserMenu';
+import { mainNavigationItems, userNavigationItems } from '@/data/navigationItems';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -66,17 +67,7 @@ export default function Navigation() {
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="ml-3 relative">
-              <div className="flex items-center space-x-3">
-                <Link 
-                  href={authNavigationItems[0].path} 
-                  className="text-foreground/70 hover:text-primary-500 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300"
-                >
-                  {authNavigationItems[0].label}
-                </Link>
-                <Link href={authNavigationItems[1].path} className="wp-button">
-                  {authNavigationItems[1].label}
-                </Link>
-              </div>
+              <UserMenu />
             </div>
           </div>
           <div className="-mr-2 flex items-center sm:hidden">
@@ -140,36 +131,9 @@ export default function Navigation() {
           ))}
         </div>
         <div className="pt-4 pb-3 border-t border-dark-600">
-          <div className="flex items-center px-4">
-            <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-neon">
-                <span className="text-sm font-medium">JD</span>
-              </div>
-            </div>
-            <div className="ml-3">
-              <div className="text-base font-medium text-foreground">John Doe</div>
-              <div className="text-sm font-medium text-foreground/60">john@example.com</div>
-            </div>
-          </div>
-          <div className="mt-3 space-y-1">
-            {/* User navigation items */}
-            {userNavigationItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.path}
-                className="block px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-primary-500/20"
-              >
-                <div className="flex items-center">
-                  {item.icon && <span className="mr-2">{item.icon}</span>}
-                  {item.label}
-                </div>
-              </Link>
-            ))}
-            <button
-              className="block w-full text-left px-4 py-2 text-base font-medium text-foreground/70 hover:text-foreground hover:bg-primary-500/20"
-            >
-              Sign out
-            </button>
+          {/* Mobile user menu */}
+          <div className="px-4">
+            <UserMenu />
           </div>
         </div>
       </div>

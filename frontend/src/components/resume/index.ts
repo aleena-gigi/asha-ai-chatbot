@@ -7,4 +7,5 @@ export { default as Tag } from './Tag';
 export { default as TagInput } from './TagInput';
 export { default as SuggestiveTagInput } from './SuggestiveTagInput';
 export { default as SuggestiveInput } from './SuggestiveInput';
-export { default as ResumeBuilder } from './ResumeBuilder';
+export { default as ResumeBuilder, type ResumeBuilderRef } from './ResumeBuilder';
+export { default as ResumeUploader } from './ResumeUploader';

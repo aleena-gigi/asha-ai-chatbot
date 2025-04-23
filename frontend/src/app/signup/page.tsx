@@ -1,26 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { 
-  SuggestiveTagInput, 
+import {
+  ResumeBuilder,
+  ResumeBuilderRef,
   SuggestiveInput,
-  ResumeSection, 
-  SectionNavItem, 
-  InputField, 
-  TextareaField, 
-  SelectField,
-  ResumeEntryCard,
-  AddButton,
-  TagInput,
-  ResumeBuilder
+  SuggestiveTagInput
 } from '@/components/resume';
-import { jobRoleSuggestions } from '@/data/jobRoleSuggestions';
-import { interestSuggestions } from '@/data/interestSuggestions';
-import { careerFieldSuggestions } from '@/data/careerFieldSuggestions';
 import FileUpload from '@/components/ui/FileUpload';
+import { careerFieldSuggestions } from '@/data/careerFieldSuggestions';
+import { interestSuggestions } from '@/data/interestSuggestions';
+import { jobRoleSuggestions } from '@/data/jobRoleSuggestions';
+import { candidateOnboarding, updateCandidateDetails } from '@/services/candidateService/onboarding';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 export default function SignUp() {
+  const router = useRouter();
+  const resumeBuilderRef = useRef<ResumeBuilderRef>(null);
   const [step, setStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,30 +36,10 @@ export default function SignUp() {
     yearsOfExperience: '',
     resume: null as File | null,
     useResumeBuilder: false,
+    isOAuthUser: false, // Flag to identify OAuth users
   });
   
-  // Resume builder state
-  const [activeSection, setActiveSection] = useState('personal');
-  const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
-  const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
-  const [skills, setSkills] = useState<string[]>([]);
-  const [hobbies, setHobbies] = useState<string[]>([]);
-  const [projectEntries, setProjectEntries] = useState([{ id: 1 }]);
-  const [languageEntries, setLanguageEntries] = useState([
-    { id: 1, name: '', proficiency: 'Native' }
-  ]);
-  
-  // Resume sections for the builder
-  const resumeSections = [
-    { id: 'personal', label: 'Personal Information' },
-    { id: 'summary', label: 'Professional Summary' },
-    { id: 'education', label: 'Education' },
-    { id: 'experience', label: 'Work Experience' },
-    { id: 'skills', label: 'Skills & Hobbies' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'languages', label: 'Languages' }
-  ];
-  
+ 
   const [errors, setErrors] = useState({
     phone: '',
     password: '',
@@ -72,25 +49,22 @@ export default function SignUp() {
     career: '',
   });
 
+  const { data: session, status, update: updateSession } = useSession();
+
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
 
-  const interestOptions = [
-    'Technology', 'Healthcare', 'Finance', 'Education', 
-    'Marketing', 'Design', 'Human Resources', 'Sales', 
-    'Customer Service', 'Administration', 'Engineering',
-    'Management', 'Consulting', 'Research', 'Writing'
-  ];
-
-  const careerOptions = [
-    'Software Development', 'Data Science', 'Healthcare Professional',
-    'Finance/Accounting', 'Marketing/PR', 'Design/Creative', 
-    'Human Resources', 'Sales/Business Development', 
-    'Customer Support', 'Administrative', 'Engineering',
-    'Management', 'Consulting', 'Research', 'Content Creation',
-    'Other'
-  ];
+    // If user is authenticated via OAuth but profile is incomplete
+    if (status === 'authenticated' && session?.user && !session.user.profileComplete) {
+      setFormData(prev => ({
+        ...prev,
+        name: session.user.name || '',
+        email: session.user.email || '',
+        isOAuthUser: true
+      }));
+      
+    }
+  }, [session, status]);
 
   const experienceOptions = [
     '0-1 years', '1-3 years', '3-5 years', '5-10 years', '10+ years'
@@ -208,20 +182,6 @@ export default function SignUp() {
     }
   };
 
-  const handleInterestToggle = (interest: string) => {
-    if (formData.interests.includes(interest)) {
-      setFormData({
-        ...formData,
-        interests: formData.interests.filter(i => i !== interest)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        interests: [...formData.interests, interest]
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -232,27 +192,61 @@ export default function SignUp() {
       return;
     }
     
-    // In a real application, you would send the form data to your backend API
-    console.log('Form submitted:', formData);
-    
-    // Simulate form submission
     try {
-      // Show loading state
       setIsSubmitting(true);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Extract first and last name from full name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
       
-      // Handle different resume options
-      if (formData.useResumeBuilder) {
-        // Redirect to resume builder after successful signup
-        console.log('Redirecting to resume builder...');
-        // In a real app: router.push('/resume-builder');
-        alert('Account created! Redirecting to resume builder...');
-      } else if (formData.resume) {
-        // Handle resume upload
-        console.log('Resume uploaded:', formData.resume.name);
-        alert('Account created with resume upload!');
+      // Format date of birth (using current date as placeholder)
+      const dateOfBirth = new Date().toISOString().split('T')[0];
+
+      // Get resume builder data if available
+      let resumeData = {};
+      if (formData.useResumeBuilder && resumeBuilderRef.current) {
+        resumeData = resumeBuilderRef.current.getFormData();
+      }
+
+      const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: formData.email,
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        phone: formData.phone,
+        gender: formData.gender,
+        date_of_birth: dateOfBirth,
+        interests: formData.interests,
+        preferred_job_roles: formData.preferredJobRoles,
+        currently_employed: formData.currentlyEmployed,
+        current_career: formData.career,
+        has_taken_break: formData.careerBreak,
+        years_of_experience: formData.yearsOfExperience,
+        onboarding_status: 'completed',
+        resume_data: resumeData,
+      };
+      console.log('User data:', userData);
+      let response;
+      
+      // For OAuth users, use updateCandidateDetails instead of signup
+      if (formData.isOAuthUser) {
+        try {
+          response = await updateCandidateDetails(formData.email, userData);
+          
+          if (response?.status_code !== 200) {
+            throw new Error('Failed to update candidate details');
+          }
+        } catch (error) {
+          console.error('Error updating candidate details:', error);
+          throw new Error('Failed to update candidate details. Please try again.');
+        }
+        await updateSession();
+        console.log('Session updated:', session);
+        router.push("/chat")
+      } else {
+        response = await candidateOnboarding(userData);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -381,6 +375,7 @@ export default function SignUp() {
                       onChange={handleChange}
                       className="input"
                       placeholder="your.email@example.com"
+                      readOnly={formData.isOAuthUser}
                     />
                   </div>
                 </div>
@@ -800,6 +795,7 @@ export default function SignUp() {
                   </p>
                   
                   <ResumeBuilder
+                    ref={resumeBuilderRef}
                     initialData={{
                       name: formData.name,
                       email: formData.email,

@@ -5,12 +5,14 @@ import SuggestionCard from '@/components/SuggestionCard';
 import MessageBubble from '@/components/MessageBubble';
 import { suggestionCards } from '@/data/suggestionCards';
 import { ChatInput } from '../../components/ui';
+import { api } from '@/services/api';
 
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  data?: any; // For complex response data
 }
 
 export default function ChatPage() {
@@ -68,37 +70,50 @@ export default function ChatPage() {
       timestamp: new Date(),
     };
     
+    const userQuery = inputValue;
+    
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      // Sample responses based on keywords
-      let botResponse = "I'm not sure I understand. Could you please provide more details about your career goals or questions?";
+    try {
+      // Call the API to generate a response
+      const responseData = await api.chat.generateResponse(userQuery);
       
-      const lowerCaseInput = inputValue.toLowerCase();
+      // Check if the response is empty
+      const isEmpty = 
+        !responseData || 
+        responseData === '' || 
+        (typeof responseData === 'object' && Object.keys(responseData).length === 0) ||
+        (Array.isArray(responseData) && responseData.length === 0);
       
-      if (lowerCaseInput.includes('job') || lowerCaseInput.includes('work') || lowerCaseInput.includes('career')) {
-        botResponse = "I'd be happy to help with your job search! Could you tell me more about your skills, experience, and what type of position you're looking for?";
-      } else if (lowerCaseInput.includes('resume') || lowerCaseInput.includes('cv')) {
-        botResponse = "I can help you optimize your resume! A strong resume should highlight your achievements, use action verbs, and be tailored to each job application. Would you like specific tips for your industry?";
-      } else if (lowerCaseInput.includes('interview')) {
-        botResponse = "Preparing for interviews is crucial! Research the company, practice common questions, prepare examples of your achievements, and have questions ready for the interviewer. Would you like some industry-specific interview tips?";
-      } else if (lowerCaseInput.includes('skill') || lowerCaseInput.includes('learn')) {
-        botResponse = "Continuous learning is essential in today's job market! What skills are you interested in developing? I can recommend resources based on your career goals.";
-      }
-      
+      // Create a message with both text and data
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: botResponse,
+        text: isEmpty 
+          ? "I'm processing your request. Please feel free to ask me another question."
+          : (typeof responseData === 'string' ? responseData : 'Response from Asha AI'),
+        sender: 'bot',
+        timestamp: new Date(),
+        data: isEmpty ? null : responseData // Store the full response data if not empty
+      };
+      
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Failed to get response from API:', error);
+      
+      // Display a graceful error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
         sender: 'bot',
         timestamp: new Date(),
       };
       
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
 
@@ -114,6 +129,7 @@ export default function ChatPage() {
                 text={message.text}
                 sender={message.sender}
                 timestamp={message.timestamp}
+                data={message.data}
               />
             ))}
             

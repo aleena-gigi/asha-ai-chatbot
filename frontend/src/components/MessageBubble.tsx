@@ -1,15 +1,17 @@
 'use client';
 
 import React from 'react';
+import ResponseRenderer from './ResponseRenderer';
 
 interface MessageBubbleProps {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
   isLoading?: boolean;
+  data?: any; // For complex response data
 }
 
-export default function MessageBubble({ text, sender, timestamp, isLoading = false }: MessageBubbleProps) {
+export default function MessageBubble({ text, sender, timestamp, isLoading = false, data }: MessageBubbleProps) {
   const formatTime = (date: Date) => {
     try {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -64,9 +66,19 @@ export default function MessageBubble({ text, sender, timestamp, isLoading = fal
             {sender === 'user' ? 'You' : 'Asha AI'} • {formatTime(timestamp)}
           </span>
         </div>
-        <p className={`${sender === 'user' ? 'text-white' : 'text-foreground'} break-words overflow-hidden whitespace-normal break-all`}>
-          {text}
-        </p>
+        {sender === 'user' ? (
+          <p className="text-white break-words overflow-hidden whitespace-normal break-all">
+            {text}
+          </p>
+        ) : (
+          <div className="text-foreground break-words overflow-hidden">
+            {data ? (
+              <ResponseRenderer data={data} />
+            ) : (
+              <p className="whitespace-normal break-all">{text}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

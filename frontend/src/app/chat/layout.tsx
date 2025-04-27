@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ChatSidebar from '@/components/ChatSidebar';
+import OAuthLoginHandler from '@/components/OAuthLoginHandler';
 
 export const metadata: Metadata = {
   title: 'Asha AI Chat',
@@ -13,6 +14,9 @@ export default function ChatLayout({
 }) {
   return (
     <div className="flex h-[calc(100vh-4rem)]">
+      {/* Invisible component to handle OAuth login data */}
+      <OAuthLoginHandler />
+      
       {/* Chat sidebar */}
       <ChatSidebar />
       

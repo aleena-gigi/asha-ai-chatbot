@@ -41,12 +41,16 @@ export default function SignUp() {
   
  
   const [errors, setErrors] = useState({
+    name: '',
+    email: '',
     phone: '',
     password: '',
     confirmPassword: '',
     interests: '',
     preferredJobRoles: '',
     career: '',
+    gender: '',
+    yearsOfExperience: '',
   });
 
   const { data: session, status, update: updateSession } = useSession();
@@ -70,43 +74,87 @@ export default function SignUp() {
     '0-1 years', '1-3 years', '3-5 years', '5-10 years', '10+ years'
   ];
 
+  // Validate name
+  const validateName = (name: string): string => {
+    if (!name.trim()) return 'Name is required';
+    if (name.trim().length < 2) return 'Name must be at least 2 characters';
+    return '';
+  };
+
+  // Validate email format
+  const validateEmail = (email: string): string => {
+    if (!email) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? '' : 'Please enter a valid email address';
+  };
+
   // Validate phone number format
   const validatePhone = (phone: string): string => {
     // Allow formats like (123) 456-7890, 123-456-7890, 123.456.7890, 1234567890
     const phoneRegex = /^(\+\d{1,3}[- ]?)?\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/;
-    if (!phone) return '';
+    if (!phone) return 'Phone number is required';
     return phoneRegex.test(phone) ? '' : 'Please enter a valid phone number';
   };
 
   // Validate password
   const validatePassword = (password: string): string => {
-    if (!password) return '';
+    if (!password) return 'Password is required';
     if (password.length < 8) {
       return 'Password must be at least 8 characters';
     }
+    // Check for password strength
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    if (!(hasUpperCase && hasLowerCase && hasNumbers)) {
+      return 'Password must contain uppercase, lowercase, and numbers';
+    }
+    
+    if (!hasSpecialChar) {
+      return 'Password should include at least one special character';
+    }
+    
     return '';
   };
 
   // Validate confirm password
   const validateConfirmPassword = (password: string, confirmPassword: string): string => {
-    if (!confirmPassword) return '';
+    if (!confirmPassword) return 'Please confirm your password';
     return password === confirmPassword ? '' : 'Passwords do not match';
+  };
+
+  // Validate gender
+  const validateGender = (gender: string): string => {
+    return gender ? '' : 'Please select your gender';
+  };
+
+  // Validate years of experience
+  const validateYearsOfExperience = (years: string): string => {
+    return years ? '' : 'Please select your years of experience';
   };
 
   // Validate form before moving to next step
   const validateStep1 = (): boolean => {
+    const nameError = validateName(formData.name);
+    const emailError = validateEmail(formData.email);
     const phoneError = validatePhone(formData.phone);
     const passwordError = validatePassword(formData.password);
     const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
+    const genderError = validateGender(formData.gender);
     
     setErrors({
       ...errors,
+      name: nameError,
+      email: emailError,
       phone: phoneError,
       password: passwordError,
-      confirmPassword: confirmPasswordError
+      confirmPassword: confirmPasswordError,
+      gender: genderError
     });
     
-    return !phoneError && !passwordError && !confirmPasswordError;
+    return !nameError && !emailError && !phoneError && !passwordError && !confirmPasswordError && !genderError;
   };
   
   // Validate step 2 before proceeding
@@ -114,6 +162,7 @@ export default function SignUp() {
     let interestsError = '';
     let jobRolesError = '';
     let careerError = '';
+    let yearsOfExperienceError = '';
     
     if (formData.interests.length === 0) {
       interestsError = 'Please select at least one interest';
@@ -127,14 +176,17 @@ export default function SignUp() {
       careerError = 'Please enter your current or desired career field';
     }
     
+    yearsOfExperienceError = validateYearsOfExperience(formData.yearsOfExperience);
+    
     setErrors({
       ...errors,
       interests: interestsError,
       preferredJobRoles: jobRolesError,
-      career: careerError
+      career: careerError,
+      yearsOfExperience: yearsOfExperienceError
     });
     
-    return !interestsError && !jobRolesError && !careerError;
+    return !interestsError && !jobRolesError && !careerError && !yearsOfExperienceError;
   };
   
   // Validate step 3 before submitting
@@ -163,21 +215,42 @@ export default function SignUp() {
       setFormData({ ...formData, [name]: value });
       
       // Validate fields as they change
-      if (name === 'phone') {
-        setErrors({ ...errors, phone: validatePhone(value) });
-      } else if (name === 'password') {
-        const passwordError = validatePassword(value);
-        const confirmPasswordError = validateConfirmPassword(value, formData.confirmPassword);
-        setErrors({ 
-          ...errors, 
-          password: passwordError,
-          confirmPassword: confirmPasswordError
-        });
-      } else if (name === 'confirmPassword') {
-        setErrors({ 
-          ...errors, 
-          confirmPassword: validateConfirmPassword(formData.password, value) 
-        });
+      switch (name) {
+        case 'name':
+          setErrors({ ...errors, name: validateName(value) });
+          break;
+        case 'email':
+          setErrors({ ...errors, email: validateEmail(value) });
+          break;
+        case 'phone':
+          setErrors({ ...errors, phone: validatePhone(value) });
+          break;
+        case 'password':
+          const passwordError = validatePassword(value);
+          const confirmPasswordError = validateConfirmPassword(value, formData.confirmPassword);
+          setErrors({ 
+            ...errors, 
+            password: passwordError,
+            confirmPassword: confirmPasswordError
+          });
+          break;
+        case 'confirmPassword':
+          setErrors({ 
+            ...errors, 
+            confirmPassword: validateConfirmPassword(formData.password, value) 
+          });
+          break;
+        case 'gender':
+          setErrors({ ...errors, gender: validateGender(value) });
+          break;
+        case 'yearsOfExperience':
+          setErrors({ ...errors, yearsOfExperience: validateYearsOfExperience(value) });
+          break;
+        case 'career':
+          if (value.trim()) {
+            setErrors({ ...errors, career: '' });
+          }
+          break;
       }
     }
   };

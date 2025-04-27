@@ -31,10 +31,13 @@ const JobListingsGrid: React.FC<JobListingsGridProps> = ({ jobs }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-      {jobs.map((job, index) => (
-        <JobListingCard key={index} job={job} />
-      ))}
+    <div className="bg-dark-800 p-6 rounded-xl">
+      <h3 className="text-xl font-bold text-white mb-4">Job Listings</h3>
+      <div className="grid grid-cols-1 gap-6">
+        {jobs.map((job, index) => (
+          <JobListingCard key={index} job={job} />
+        ))}
+      </div>
     </div>
   );
 };

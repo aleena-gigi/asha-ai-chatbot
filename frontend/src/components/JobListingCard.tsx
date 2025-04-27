@@ -22,7 +22,7 @@ interface JobListingCardProps {
 
 const JobListingCard: React.FC<JobListingCardProps> = ({ job }) => {
   return (
-    <div className="bg-dark-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-dark-600">
+    <div className="bg-dark-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-dark-600">
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-lg font-semibold text-primary-500">{job.title}</h3>
         {job.is_remote && (

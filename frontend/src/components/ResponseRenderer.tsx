@@ -2,6 +2,9 @@
 
 import React from 'react';
 import JobListingsGrid from './JobListingsGrid';
+import StreamingJobGrid from './StreamingJobGrid';
+import TextResponseCard from './TextResponseCard';
+import JobCard from '@/app/chat/JobCard';
 
 interface ResponseRendererProps {
   data: any;
@@ -64,8 +67,12 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
         responseData.every(item => 
           typeof item === 'object' && 
           item !== null && 
-          (item.title || item.job_title) && 
-          (item.company || item.company_name)
+          (
+            // Traditional job listing format
+            ((item.title || item.job_title) && (item.company || item.company_name)) ||
+            // Streaming job match format
+            (item.job_title && item.company_name && (item.matching_score !== undefined || item.skills_matched))
+          )
         );
     }
     
@@ -87,6 +94,25 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
       if (typeof jobResponse === 'object' && jobResponse.jobs && Array.isArray(jobResponse.jobs)) {
         return jobResponse.jobs.length > 0;
       }
+      
+      // Check if it's a single job match object
+      if (typeof jobResponse === 'object' && 
+          jobResponse.job_title && 
+          jobResponse.company_name) {
+        return true;
+      }
+    }
+    
+    // Check if it's a job_listing_generation_node_response
+    if (responseData && typeof responseData === 'object' && responseData.job_listing_generation_node_response) {
+      const jobResponse = responseData.job_listing_generation_node_response;
+      
+      // Check if it's a single job match object
+      if (typeof jobResponse === 'object' && 
+          jobResponse.job_title && 
+          jobResponse.company_name) {
+        return true;
+      }
     }
     
     return false;
@@ -96,18 +122,27 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
   const extractJobListings = (responseData: any): any[] => {
     if (Array.isArray(responseData)) {
       // If it's already an array, normalize the job objects
-      return responseData.map(job => ({
-        title: job.title || job.job_title || 'Unknown Position',
-        company: job.company || job.company_name || 'Unknown Company',
-        location: job.location || 'Location not specified',
-        job_type: job.job_type || job.type,
-        description: job.description,
-        requirements: job.requirements,
-        application_url: job.application_url || job.url,
-        posted_date: job.posted_date,
-        salary_range: job.salary_range || job.salary,
-        is_remote: job.is_remote || job.remote || false
-      }));
+      return responseData.map(job => {
+        // Check if this is a streaming job match format
+        if (job.job_title && job.company_name && (job.matching_score !== undefined || job.skills_matched)) {
+          // Return as is, it's already in the right format for StreamingJobGrid
+          return job;
+        }
+        
+        // Traditional job listing format
+        return {
+          title: job.title || job.job_title || 'Unknown Position',
+          company: job.company || job.company_name || 'Unknown Company',
+          location: job.location || 'Location not specified',
+          job_type: job.job_type || job.type,
+          description: job.description,
+          requirements: job.requirements,
+          application_url: job.application_url || job.url,
+          posted_date: job.posted_date,
+          salary_range: job.salary_range || job.salary,
+          is_remote: job.is_remote || job.remote || false
+        };
+      });
     }
     
     // Check if it's an object with a jobs array
@@ -127,15 +162,185 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
         if (typeof jobResponse === 'object' && jobResponse.jobs && Array.isArray(jobResponse.jobs)) {
           return extractJobListings(jobResponse.jobs);
         }
+        
+        // Check if it's a single job match object
+        if (typeof jobResponse === 'object' && 
+            jobResponse.job_title && 
+            jobResponse.company_name) {
+          // Ensure skills_matched is an array if it exists
+          if (jobResponse.skills_matched && !Array.isArray(jobResponse.skills_matched)) {
+            jobResponse.skills_matched = jobResponse.skills_matched.split(',').map((skill: string) => skill.trim());
+          }
+          
+          // Ensure skills_not_matched is an array if it exists
+          if (jobResponse.skills_not_matched && !Array.isArray(jobResponse.skills_not_matched)) {
+            jobResponse.skills_not_matched = jobResponse.skills_not_matched.split(',').map((skill: string) => skill.trim());
+          }
+          
+          return [jobResponse];
+        }
+      }
+      
+      // Check if it's a job_listing_generation_node_response
+      if (responseData.job_listing_generation_node_response) {
+        const jobResponse = responseData.job_listing_generation_node_response;
+        
+        // Check if it's a single job match object
+        if (typeof jobResponse === 'object' && 
+            jobResponse.job_title && 
+            jobResponse.company_name) {
+          // Ensure skills_matched is an array if it exists
+          if (jobResponse.skills_matched && !Array.isArray(jobResponse.skills_matched)) {
+            jobResponse.skills_matched = jobResponse.skills_matched.split(',').map((skill: string) => skill.trim());
+          }
+          
+          // Ensure skills_not_matched is an array if it exists
+          if (jobResponse.skills_not_matched && !Array.isArray(jobResponse.skills_not_matched)) {
+            jobResponse.skills_not_matched = jobResponse.skills_not_matched.split(',').map((skill: string) => skill.trim());
+          }
+          
+          return [jobResponse];
+        }
       }
     }
     
     return [];
   };
   
+  // Helper function to determine if the data contains streaming job matches
+  const containsStreamingJobMatches = (responseData: any): boolean => {
+    if (Array.isArray(responseData)) {
+      return responseData.length > 0 && 
+        responseData.some(item => 
+          typeof item === 'object' && 
+          item !== null && 
+          item.job_title && 
+          item.company_name && 
+          (item.matching_score !== undefined || item.skills_matched)
+        );
+    }
+    
+    if (responseData && typeof responseData === 'object' && responseData.job_listing_node_response) {
+      const jobResponse = responseData.job_listing_node_response;
+      
+      if (Array.isArray(jobResponse)) {
+        return containsStreamingJobMatches(jobResponse);
+      }
+      
+      if (typeof jobResponse === 'object' && 
+          jobResponse.job_title && 
+          jobResponse.company_name && 
+          (jobResponse.matching_score !== undefined || jobResponse.skills_matched)) {
+        return true;
+      }
+    }
+    
+    // Check if it's a job_listing_generation_node_response
+    if (responseData && typeof responseData === 'object' && responseData.job_listing_generation_node_response) {
+      const jobResponse = responseData.job_listing_generation_node_response;
+      
+      if (typeof jobResponse === 'object' && 
+          jobResponse.job_title && 
+          jobResponse.company_name && 
+          jobResponse.matching_score !== undefined) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
+  // Helper function to check if the data is a job_listing_generation_node_response
+  const isJobListingGenerationNodeResponse = (responseData: any): boolean => {
+    return responseData && 
+           typeof responseData === 'object' && 
+           responseData.job_listing_generation_node_response && 
+           typeof responseData.job_listing_generation_node_response === 'object' &&
+           responseData.job_listing_generation_node_response.job_title &&
+           responseData.job_listing_generation_node_response.company_name;
+  };
+  
+  // Helper function to check if the data is a job_listing_node_response
+  const isJobListingNodeResponse = (responseData: any): boolean => {
+    return responseData && 
+           typeof responseData === 'object' && 
+           responseData.job_listing_node_response && 
+           typeof responseData.job_listing_node_response === 'object' &&
+           responseData.job_listing_node_response.job_title &&
+           responseData.job_listing_node_response.company_name;
+  };
+  
   // Handle array of objects (like multiple JSON objects in the response)
   if (Array.isArray(data)) {
-    // Check if this is a job listing response
+    // Check if array contains job_listing_node_response objects
+    const jobListingNodeResponses = data.filter(item => isJobListingNodeResponse(item));
+    if (jobListingNodeResponses.length > 0) {
+      const jobs = jobListingNodeResponses.map(item => {
+        const job = item.job_listing_node_response;
+        
+        // Ensure skills_matched is an array if it exists
+        if (job.skills_matched && !Array.isArray(job.skills_matched)) {
+          job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+        }
+        
+        // Ensure skills_not_matched is an array if it exists
+        if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
+          job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+        }
+        
+        return job;
+      });
+      
+      return (
+        <div className="bg-dark-800 p-6 rounded-xl">
+          <h3 className="text-xl font-bold text-white mb-4">Job Matches For You</h3>
+          <div className="grid grid-cols-1 gap-6">
+            {jobs.map((job, index) => (
+              <JobCard key={index} job={job} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Check if array contains job_listing_generation_node_response objects
+    const jobListingGenerationResponses = data.filter(item => isJobListingGenerationNodeResponse(item));
+    if (jobListingGenerationResponses.length > 0) {
+      const jobs = jobListingGenerationResponses.map(item => {
+        const job = item.job_listing_generation_node_response;
+        
+        // Ensure skills_matched is an array if it exists
+        if (job.skills_matched && !Array.isArray(job.skills_matched)) {
+          job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+        }
+        
+        // Ensure skills_not_matched is an array if it exists
+        if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
+          job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+        }
+        
+        return job;
+      });
+      
+      return (
+        <div className="bg-dark-800 p-6 rounded-xl">
+          <h3 className="text-xl font-bold text-white mb-4">Job Recommendations</h3>
+          <div className="grid grid-cols-1 gap-6">
+            {jobs.map((job, index) => (
+              <JobCard key={index} job={job} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Check if this is a streaming job match response
+    if (containsStreamingJobMatches(data)) {
+      const jobs = extractJobListings(data);
+      return <StreamingJobGrid jobs={jobs} />;
+    }
+    
+    // Check if this is a traditional job listing response
     if (containsJobListings(data)) {
       const jobs = extractJobListings(data);
       return <JobListingsGrid jobs={jobs} />;
@@ -147,13 +352,13 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
       .filter(text => text.length > 0);
     
     if (textResponses.length === 0) {
-      return <p>No response content found.</p>;
+      return <TextResponseCard text="No response content found." />;
     }
     
     return (
       <div>
         {textResponses.map((text, index) => (
-          <p key={index} className="mb-2">{text}</p>
+          <TextResponseCard key={index} text={text} />
         ))}
       </div>
     );
@@ -161,7 +366,47 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
   
   // Handle single object
   if (data && typeof data === 'object') {
-    // Check if this is a job listing response
+    // Check if this is a job_listing_node_response
+    if (isJobListingNodeResponse(data)) {
+      const job = data.job_listing_node_response;
+      
+      // Ensure skills_matched is an array if it exists
+      if (job.skills_matched && !Array.isArray(job.skills_matched)) {
+        job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      // Ensure skills_not_matched is an array if it exists
+      if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
+        job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      return <JobCard job={job} />;
+    }
+    
+    // Check if this is a job_listing_generation_node_response
+    if (isJobListingGenerationNodeResponse(data)) {
+      const job = data.job_listing_generation_node_response;
+      
+      // Ensure skills_matched is an array if it exists
+      if (job.skills_matched && !Array.isArray(job.skills_matched)) {
+        job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      // Ensure skills_not_matched is an array if it exists
+      if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
+        job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      return <JobCard job={job} />;
+    }
+    
+    // Check if this is a streaming job match response
+    if (containsStreamingJobMatches(data)) {
+      const jobs = extractJobListings(data);
+      return <StreamingJobGrid jobs={jobs} />;
+    }
+    
+    // Check if this is a traditional job listing response
     if (containsJobListings(data)) {
       const jobs = extractJobListings(data);
       return <JobListingsGrid jobs={jobs} />;
@@ -170,22 +415,22 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
     // Extract text from the object
     const text = extractTextFromResponse(data);
     if (text) {
-      return <p>{text}</p>;
+      return <TextResponseCard text={text} />;
     }
   }
   
   // Handle string response
   if (typeof data === 'string') {
-    return <p>{data}</p>;
+    return <TextResponseCard text={data} />;
   }
   
   // Handle empty, null, or undefined data
   if (!data || (typeof data === 'object' && Object.keys(data).length === 0) || data === '') {
-    return <p>I'm processing your request. Please feel free to ask me another question.</p>;
+    return <TextResponseCard text="I'm processing your request. Please feel free to ask me another question." />;
   }
   
   // Fallback for other unhandled cases
-  return <p>Unable to display response.</p>;
+  return <TextResponseCard text="Unable to display response." />;
 };
 
 export default ResponseRenderer;

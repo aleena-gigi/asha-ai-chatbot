@@ -9,9 +9,19 @@ interface MessageBubbleProps {
   timestamp: Date;
   isLoading?: boolean;
   data?: any; // For complex response data
+  isStreaming?: boolean; // Flag to indicate if this message is still receiving streaming data
+  streamingData?: any[]; // Array to hold streaming job listings or other data
 }
 
-export default function MessageBubble({ text, sender, timestamp, isLoading = false, data }: MessageBubbleProps) {
+export default function MessageBubble({ 
+  text, 
+  sender, 
+  timestamp, 
+  isLoading = false, 
+  data,
+  isStreaming = false,
+  streamingData = []
+}: MessageBubbleProps) {
   const formatTime = (date: Date) => {
     try {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -72,7 +82,17 @@ export default function MessageBubble({ text, sender, timestamp, isLoading = fal
           </p>
         ) : (
           <div className="text-foreground break-words overflow-hidden">
-            {data ? (
+            {isStreaming && streamingData && streamingData.length > 0 ? (
+              <div>
+                <p className="mb-2 whitespace-normal break-all">{text}</p>
+                <ResponseRenderer data={streamingData} />
+                <div className="flex space-x-2 mt-2">
+                  <div className="w-2 h-2 rounded-full bg-primary-300 animate-bounce"></div>
+                  <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                </div>
+              </div>
+            ) : data ? (
               <ResponseRenderer data={data} />
             ) : (
               <p className="whitespace-normal break-all">{text}</p>

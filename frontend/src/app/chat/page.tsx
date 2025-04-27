@@ -7,6 +7,7 @@ import { suggestionCards } from '@/data/suggestionCards';
 import { ChatInput } from '../../components/ui';
 import { api } from '@/services/api';
 import { useCandidateData } from '@/context/CandidateContext';
+import { extractJsonObjects } from '@/utils/jsonUtils';
 
 interface Message {
   id: string;
@@ -123,61 +124,99 @@ export default function ChatPage() {
         return;
       }
       
-      // Always proceed with the API call, even if candidate data is incomplete
-      let responseData;
-      
       // Create a minimal valid candidate data object if none exists
-      const effectiveCandidateData = candidateData
+      const effectiveCandidateData = candidateData;
       
       try {
-        // Call the API to generate a response with whatever candidate data we have
-        responseData = await api.chat.generateResponse(userQuery, effectiveCandidateData);
+        // Create a placeholder message for responses
+        const botMessageId = (Date.now() + 1).toString();
+        const initialBotMessage: Message = {
+          id: botMessageId,
+          text: "I'm processing your request...",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, initialBotMessage]);
+        
+        // Call the API to generate a response
+        const jsonObjects = await api.chat.generateResponse(userQuery, effectiveCandidateData);
+        
+        // console.log("Response body:", typeof response);
+        // const reader = response
+        const decoder = new TextDecoder();
+        let accumulatedData = "";
+        let allJobListings: any[] = [];
+        let textResponse = "";
+        
+          if (jsonObjects.length > 0) {
+            // Process each JSON object
+            for (const jsonObj of jsonObjects) {
+              // Check if this is a job listing generation node response
+              if (jsonObj.job_listing_generation_node_response) {
+                const jobData = jsonObj.job_listing_generation_node_response;
+                
+                // If it's a job listing, add it to the job listings array
+                allJobListings.push(jobData);
+              } else if (jsonObj.greeting_generation_node_response) {
+                // If it's a greeting response, update the text
+                textResponse = jsonObj.greeting_generation_node_response;
+              } else if (jsonObj.status === "completed") {
+                // If we received the completion status, finalize the message
+                setMessages((prev) => {
+                  const updatedMessages = [...prev];
+                  const botMessageIndex = updatedMessages.findIndex(msg => msg.id === botMessageId);
+                  
+                  if (botMessageIndex !== -1) {
+                    // If we have job listings, update the text and data
+                    if (allJobListings.length > 0) {
+                      updatedMessages[botMessageIndex].text = `Found ${allJobListings.length} job matches based on your profile:`;
+                      updatedMessages[botMessageIndex].data = allJobListings;
+                    } else if (textResponse) {
+                      // If we have a text response, use that
+                      updatedMessages[botMessageIndex].text = textResponse;
+                    }
+                  }
+                  
+                  return updatedMessages;
+                });
+              } else {
+                // For other types of responses, check for string properties
+                for (const key in jsonObj) {
+                  if (typeof jsonObj[key] === 'string') {
+                    textResponse = jsonObj[key];
+                    
+                    // Update the message with the text response
+                    setMessages((prev) => {
+                      const updatedMessages = [...prev];
+                      const botMessageIndex = updatedMessages.findIndex(msg => msg.id === botMessageId);
+                      
+                      if (botMessageIndex !== -1 && allJobListings.length === 0) {
+                        updatedMessages[botMessageIndex].text = textResponse;
+                      }
+                      
+                      return updatedMessages;
+                    });
+                  }
+                }
+              }
+            }
+          }
+        
       } catch (apiError) {
         console.error('API call failed:', apiError);
         
-      // Display a user-friendly error message
-      const apiErrorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I'm having trouble connecting to my knowledge base right now. Let me try to help you with what I know. Could you please rephrase your question or try again in a moment?",
-        sender: 'bot',
-        timestamp: new Date(),
-      };
+        // Display a user-friendly error message
+        const apiErrorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "I'm having trouble connecting to my knowledge base right now. Let me try to help you with what I know. Could you please rephrase your question or try again in a moment?",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        
         setMessages((prev) => [...prev, apiErrorMessage]);
         setIsLoading(false);
         return;
-      }
-      
-      // Check if the response is empty
-      const isEmpty = 
-        !responseData || 
-        responseData === '' || 
-        (typeof responseData === 'object' && Object.keys(responseData).length === 0) ||
-        (Array.isArray(responseData) && responseData.length === 0);
-      
-      // Check if the response contains an error
-      if (responseData && responseData.error) {
-        // Use the friendly error message from the API
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: responseData.message || "I'm having trouble processing your request right now.",
-          sender: 'bot',
-          timestamp: new Date(),
-        };
-        
-        setMessages((prev) => [...prev, errorMessage]);
-      } else {
-        // Create a message with both text and data
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: isEmpty 
-            ? "I'm processing your request. Please feel free to ask me another question."
-            : (typeof responseData === 'string' ? responseData : 'Response from Asha AI'),
-          sender: 'bot',
-          timestamp: new Date(),
-          data: isEmpty ? null : responseData // Store the full response data if not empty
-        };
-        
-        setMessages((prev) => [...prev, botMessage]);
       }
     } catch (error) {
       console.error('Failed to get response from API:', error);

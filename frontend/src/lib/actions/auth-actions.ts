@@ -11,6 +11,15 @@ const LoginSchema = z.object({
 // Type for login form data
 export type LoginFormData = z.infer<typeof LoginSchema>;
 
+// Global variable to store the setCandidateData function
+// This will be set by the CandidateContext when it initializes
+let globalSetCandidateData: ((data: any) => void) | null = null;
+
+// Function to register the setCandidateData function
+export const registerCandidateDataSetter = (setter: (data: any) => void) => {
+  globalSetCandidateData = setter;
+};
+
 /**
  * Function to handle user login
  */
@@ -52,6 +61,23 @@ export async function login(formData: LoginFormData) {
         message: "Invalid email or password"
       };
     }
+    
+    // Store candidate data in localStorage for immediate access
+    if (userResponse.data) {
+      localStorage.setItem('candidateData', JSON.stringify(userResponse.data));
+      
+      // Set candidate data in the context if the setter is available
+      if (globalSetCandidateData) {
+        globalSetCandidateData(userResponse.data);
+      } else {
+        console.warn('Cannot set candidate data in context: setter not registered');
+      }
+    }
+    
+    // Dispatch event to notify about auth state change and candidate data availability
+    window.dispatchEvent(new CustomEvent('authStateChanged', { 
+      detail: { candidateData: userResponse.data } 
+    }));
     
     return {
       success: true,

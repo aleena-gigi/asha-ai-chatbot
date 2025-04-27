@@ -50,8 +50,8 @@ export default function Login() {
       });
       
       if (result.success) {
-        // Redirect to home page on successful login
-        router.push('/');
+        // Redirect to chat page on successful login
+        router.push('/chat');
         router.refresh(); // Refresh to update auth state
       } else {
         // Display error message
@@ -122,26 +122,18 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="rememberMe"
-                  name="rememberMe"
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="h-4 w-4 bg-dark-600 border-dark-400 rounded focus:ring-offset-dark-800 focus:ring-primary-500"
-                />
-                <label htmlFor="rememberMe" className="ml-2 block text-sm text-dark-100">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-primary-400 hover:text-primary-300 transition-colors">
-                  Forgot password?
-                </a>
-              </div>
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                name="rememberMe"
+                type="checkbox"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                className="h-4 w-4 bg-dark-600 border-dark-400 rounded focus:ring-offset-dark-800 focus:ring-primary-500"
+              />
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-dark-100">
+                Remember me
+              </label>
             </div>
 
             {error && (
@@ -185,7 +177,7 @@ export default function Login() {
               <div>
                 <button
                   type="button"
-                  onClick={() => signIn('google', { callbackUrl: '/' })}
+                  onClick={() => signIn('google', { callbackUrl: '/chat' })}
                   className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300 cursor-pointer"
                 >
                   <span className="sr-only">Sign in with Google</span>
@@ -198,7 +190,7 @@ export default function Login() {
               <div>
                 <button
                   type="button"
-                  onClick={() => signIn('github', { callbackUrl: '/' })}
+                  onClick={() => signIn('github', { callbackUrl: '/chat' })}
                   className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300 cursor-pointer"
                 >
                   <span className="sr-only">Sign in with Github</span>

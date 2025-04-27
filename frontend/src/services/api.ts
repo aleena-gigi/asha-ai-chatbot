@@ -113,10 +113,48 @@ export interface MentorshipProgram {
 export const api = {
   // Chat API
   chat: {
-    generateResponse: async (message: string): Promise<any> => {
+    generateResponse: async (message: string, candidateData?: any): Promise<any> => {
       try {
-        // The backend expects a 'query' parameter
-        const response = await fetch(`${NEXT_BASE_URL}/agents/generateResponse?query=${encodeURIComponent(message)}`, {
+        // Validate candidate data
+        if (!candidateData) {
+          console.warn('No candidate data provided to generateResponse');
+          return {
+            error: true,
+            message: 'Profile data is required. Please complete your profile to get personalized responses.'
+          };
+        }
+        
+        console.log('generateResponse received candidate data with keys:', Object.keys(candidateData).join(', '));
+        
+        // Extract required fields from candidate data
+        const email_id = candidateData.email;
+        const session_id = candidateData.session_id || candidateData._id || candidateData.id;
+        
+        // Ensure we have the required fields
+        if (!email_id) {
+          console.warn('Missing email_id in candidateData');
+          if (typeof candidateData === 'object') {
+            candidateData.email = 'user@example.com'; // Fallback email
+          }
+        }
+        
+        if (!session_id) {
+          console.warn('Missing session_id in candidateData');
+          if (typeof candidateData === 'object') {
+            candidateData.session_id = 'session-' + Date.now(); // Generate a temporary session ID
+          }
+        }
+        
+        // Use the entire candidate data from the API as profile_data
+        // This includes all resume data, job preferences, skills, etc.
+        const profile_data = JSON.stringify(candidateData);
+        
+        console.log('Using email_id:', email_id);
+        console.log('Using session_id:', session_id);
+        console.log('Profile data size:', profile_data.length, 'bytes');
+        
+        // The backend expects query, email_id, session_id, and profile_data parameters
+        const response = await fetch(`https://d7a1-103-178-204-113.ngrok-free.app/agents/generateResponse?query=${encodeURIComponent(message)}&email_id=${encodeURIComponent(email_id)}&session_id=${encodeURIComponent(session_id)}&profile_data=${encodeURIComponent(profile_data)}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -152,238 +190,8 @@ export const api = {
         console.error('Error generating response:', error);
         throw error;
       }
-    },
-    sendMessage: async (data: ChatRequest): Promise<ChatResponse> => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/chat/message`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error sending message:', error);
-        throw error;
-      }
-    },
-
-    getConversation: async (sessionId: string) => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/chat/conversation/${sessionId}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching conversation:', error);
-        throw error;
-      }
-    },
-
-    createSession: async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/chat/session`, {
-          method: 'POST',
-        });
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error creating session:', error);
-        throw error;
-      }
-    },
-  },
-
-  // Content API
-  content: {
-    // Jobs
-    getJobs: async (skip = 0, limit = 10, isActive = true): Promise<JobListing[]> => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/content/jobs?skip=${skip}&limit=${limit}&is_active=${isActive}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        throw error;
-      }
-    },
-
-    getJob: async (id: number): Promise<JobListing> => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/content/jobs/${id}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error(`Error fetching job ${id}:`, error);
-        throw error;
-      }
-    },
-
-    searchJobs: async (query: string, filters: Record<string, any> = {}) => {
-      try {
-        const queryParams = new URLSearchParams({
-          query,
-          ...filters,
-        });
-
-        const response = await fetch(`${API_BASE_URL}/content/jobs/search?${queryParams}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error searching jobs:', error);
-        throw error;
-      }
-    },
-
-    // Events
-    getEvents: async (skip = 0, limit = 10, upcomingOnly = true): Promise<Event[]> => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/content/events?skip=${skip}&limit=${limit}&upcoming_only=${upcomingOnly}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        throw error;
-      }
-    },
-
-    getEvent: async (id: number): Promise<Event> => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/content/events/${id}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error(`Error fetching event ${id}:`, error);
-        throw error;
-      }
-    },
-
-    searchEvents: async (query: string, filters: Record<string, any> = {}) => {
-      try {
-        const queryParams = new URLSearchParams({
-          query,
-          ...filters,
-        });
-
-        const response = await fetch(`${API_BASE_URL}/content/events/search?${queryParams}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error searching events:', error);
-        throw error;
-      }
-    },
-
-    // Mentorship Programs
-    getMentorshipPrograms: async (skip = 0, limit = 10, isActive = true): Promise<MentorshipProgram[]> => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/content/mentorship?skip=${skip}&limit=${limit}&is_active=${isActive}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching mentorship programs:', error);
-        throw error;
-      }
-    },
-
-    getMentorshipProgram: async (id: number): Promise<MentorshipProgram> => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/content/mentorship/${id}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error(`Error fetching mentorship program ${id}:`, error);
-        throw error;
-      }
-    },
-
-    searchMentorshipPrograms: async (query: string, filters: Record<string, any> = {}) => {
-      try {
-        const queryParams = new URLSearchParams({
-          query,
-          ...filters,
-        });
-
-        const response = await fetch(`${API_BASE_URL}/content/mentorship/search?${queryParams}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error searching mentorship programs:', error);
-        throw error;
-      }
-    },
-
-    // Combined Search
-    searchAll: async (query: string, limit = 5) => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/content/search?query=${query}&limit=${limit}`);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error('Error performing combined search:', error);
-        throw error;
-      }
-    },
-  },
+    }
+  }
 };
 
 export default api;

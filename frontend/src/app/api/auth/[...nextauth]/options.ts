@@ -34,13 +34,6 @@ export const authOptions: NextAuthOptions = {
           const userResponse = await getCandidateDetails(credentials.email);
 
           if (userResponse && userResponse.status_code === 200 && userResponse.data) {
-            // In a real app, you would verify the password with a proper hash comparison
-            // For this example, we're doing a simple check
-            // Note: In production, you should NEVER store passwords in plain text
-            // and should use a proper password hashing library like bcrypt
-            
-            // For demo purposes, we're just checking if the password exists
-            // In a real app, you would compare the hashed password
             if (userResponse.data.password === credentials.password) {
               return {
                 id: userResponse.data.id || userResponse.data._id || credentials.email,
@@ -108,8 +101,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, trigger }: { token: JWT; user: any; trigger?: any }) {
-      console.log('JWT callback - token:', token);
-      console.log('JWT callback - user:', user);
       if(trigger === "update" ) {
         // Update the token with the user profile completion status
         token.profileComplete = true;
@@ -126,7 +117,6 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.email = token.email as string;
         session.user.profileComplete = token.profileComplete || false;
-        console.log('Session callback - setting session.user.profileComplete:', session.user.profileComplete);
       }
       return session;
     },

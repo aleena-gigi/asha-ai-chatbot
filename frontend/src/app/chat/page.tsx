@@ -6,6 +6,7 @@ import MessageBubble from '@/components/MessageBubble';
 import { suggestionCards } from '@/data/suggestionCards';
 import { ChatInput } from '../../components/ui';
 import { api } from '@/services/api';
+import { useCandidateData } from '@/context/CandidateContext';
 
 interface Message {
   id: string;
@@ -16,20 +17,50 @@ interface Message {
 }
 
 export default function ChatPage() {
+  // Get candidate data from context
+  const { candidateData: cd, loading: candidateLoading } = useCandidateData();
+  const [candidateData, setCandidateData] = useState<any>();
+
+  useEffect(() => {
+    if (cd?.data) {
+      setCandidateData(cd?.data);
+    }else {
+      setCandidateData(cd);
+    }
+  }, [cd]);
+
   // Initialize state with useEffect to avoid hydration mismatch
   const [messages, setMessages] = useState<Message[]>([]);
   
   // Initialize messages after component mounts to avoid hydration issues
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        text: "Hello! I'm Asha, your AI career companion. How can I help you with your professional journey today?",
-        sender: 'bot',
-        timestamp: new Date(),
-      },
-    ]);
-  }, []);
+    // Check if candidate data is available
+    if (candidateData) {
+      // Personalized greeting with candidate's name
+      const greeting = candidateData?.first_name 
+        ? `Hello ${candidateData?.first_name}! I'm Asha, your AI career companion. How can I help you with your professional journey today?`
+        : "Hello! I'm Asha, your AI career companion. How can I help you with your professional journey today?";
+      
+      setMessages([
+        {
+          id: '1',
+          text: greeting,
+          sender: 'bot',
+          timestamp: new Date(),
+        },
+      ]);
+    } else {
+      // Generic greeting
+      setMessages([
+        {
+          id: '1',
+          text: "Hello! I'm Asha, your AI career companion. How can I help you with your professional journey today?",
+          sender: 'bot',
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [candidateData]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,8 +108,44 @@ export default function ChatPage() {
     setIsLoading(true);
     
     try {
-      // Call the API to generate a response
-      const responseData = await api.chat.generateResponse(userQuery);
+      // Check if candidate data is available
+      if (candidateLoading) {
+        // Instead of throwing an error, add a message to the chat
+        const loadingMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "I'm still loading your profile data. Please wait a moment before sending messages.",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, loadingMessage]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Always proceed with the API call, even if candidate data is incomplete
+      let responseData;
+      
+      // Create a minimal valid candidate data object if none exists
+      const effectiveCandidateData = candidateData
+      
+      try {
+        // Call the API to generate a response with whatever candidate data we have
+        responseData = await api.chat.generateResponse(userQuery, effectiveCandidateData);
+      } catch (apiError) {
+        console.error('API call failed:', apiError);
+        
+      // Display a user-friendly error message
+      const apiErrorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm having trouble connecting to my knowledge base right now. Let me try to help you with what I know. Could you please rephrase your question or try again in a moment?",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+        setMessages((prev) => [...prev, apiErrorMessage]);
+        setIsLoading(false);
+        return;
+      }
       
       // Check if the response is empty
       const isEmpty = 
@@ -87,25 +154,38 @@ export default function ChatPage() {
         (typeof responseData === 'object' && Object.keys(responseData).length === 0) ||
         (Array.isArray(responseData) && responseData.length === 0);
       
-      // Create a message with both text and data
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: isEmpty 
-          ? "I'm processing your request. Please feel free to ask me another question."
-          : (typeof responseData === 'string' ? responseData : 'Response from Asha AI'),
-        sender: 'bot',
-        timestamp: new Date(),
-        data: isEmpty ? null : responseData // Store the full response data if not empty
-      };
-      
-      setMessages((prev) => [...prev, botMessage]);
+      // Check if the response contains an error
+      if (responseData && responseData.error) {
+        // Use the friendly error message from the API
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: responseData.message || "I'm having trouble processing your request right now.",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, errorMessage]);
+      } else {
+        // Create a message with both text and data
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: isEmpty 
+            ? "I'm processing your request. Please feel free to ask me another question."
+            : (typeof responseData === 'string' ? responseData : 'Response from Asha AI'),
+          sender: 'bot',
+          timestamp: new Date(),
+          data: isEmpty ? null : responseData // Store the full response data if not empty
+        };
+        
+        setMessages((prev) => [...prev, botMessage]);
+      }
     } catch (error) {
       console.error('Failed to get response from API:', error);
       
-      // Display a graceful error message
+      // Display a more conversational and helpful error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
+        text: "I seem to be having a bit of trouble right now. This could be due to a temporary connection issue. Would you mind trying your question again? If the problem persists, perhaps we could approach your question from a different angle.",
         sender: 'bot',
         timestamp: new Date(),
       };

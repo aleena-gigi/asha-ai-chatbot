@@ -317,10 +317,11 @@ export default function SignUp() {
         }
         await updateSession();
         console.log('Session updated:', session);
-        router.push("/chat")
       } else {
         response = await candidateOnboarding(userData);
       }
+      router.push("/chat")
+
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('There was an error creating your account. Please try again.');

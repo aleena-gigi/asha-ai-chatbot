@@ -1,47 +1,141 @@
 'use client';
 
+import { getCandidateDetails, updateCandidateDetails } from '@/services/candidateService/onboarding';
 import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { SuggestiveInput, SuggestiveTagInput } from '@/components/resume';
+import FileUpload from '@/components/ui/FileUpload';
+import { careerFieldSuggestions } from '@/data/careerFieldSuggestions';
+import { interestSuggestions } from '@/data/interestSuggestions';
+import { jobRoleSuggestions } from '@/data/jobRoleSuggestions';
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { data: session, status, update: updateSession } = useSession();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    bio: '',
-    location: '',
-    website: '',
+    email: '',
+    phone: '',
+    gender: '',
+    interests: [] as string[],
+    preferredJobRoles: [] as string[],
+    currentlyEmployed: false,
+    career: '',
+    careerBreak: false,
+    yearsOfExperience: '',
+    resume: null as File | null,
   });
 
-  // Initialize form data with session data when available
+  // Fetch candidate details when component mounts
   useEffect(() => {
-    if (session?.user) {
-      setFormData({
-        name: session.user.name || '',
-        bio: '',
-        location: '',
-        website: '',
-      });
+    const fetchCandidateDetails = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const response = await getCandidateDetails(session.user.email);
+          if (response.status_code === 200 && response.data) {
+            const candidateData = response.data;
+            
+            // Map backend data to form fields
+            setFormData({
+              name: `${candidateData.first_name || ''} ${candidateData.last_name || ''}`.trim(),
+              email: candidateData.email || '',
+              phone: candidateData.phone || '',
+              gender: candidateData.gender || '',
+              interests: candidateData.interests || [],
+              preferredJobRoles: candidateData.preferred_job_roles || [],
+              currentlyEmployed: candidateData.currently_employed || false,
+              career: candidateData.current_career || '',
+              careerBreak: candidateData.has_taken_break || false,
+              yearsOfExperience: candidateData.years_of_experience || '',
+              resume: null,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching candidate details:', error);
+        }
+      }
+      setIsLoaded(true);
+    };
+
+    fetchCandidateDetails();
+  }, [session, status]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement;
+    
+    if (type === 'checkbox') {
+      const { checked } = e.target as HTMLInputElement;
+      setFormData({ ...formData, [name]: checked });
+    } else if (type === 'file') {
+      const files = (e.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        setFormData({ ...formData, [name]: files[0] });
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
-  }, [session]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would save the profile data to the backend
-    console.log('Profile data:', formData);
-    setIsEditing(false);
+    
+    if (isSubmitting) return; // Prevent multiple submissions
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Extract first and last name from full name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        phone: formData.phone,
+        gender: formData.gender,
+        interests: formData.interests,
+        preferred_job_roles: formData.preferredJobRoles,
+        currently_employed: formData.currentlyEmployed,
+        current_career: formData.career,
+        has_taken_break: formData.careerBreak,
+        years_of_experience: formData.yearsOfExperience,
+      };
+      
+      // Update candidate details
+      const response = await updateCandidateDetails(
+        session?.user?.email || '', 
+        userData,
+        formData.resume || undefined
+      );
+      
+      if (response?.status_code !== 200) {
+        throw new Error('Failed to update profile details');
+      }
+      
+      // Update session
+      await updateSession();
+      
+      // Reset form state
+      setIsEditing(false);
+      
+      // Show success message
+      alert('Profile updated successfully!');
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('There was an error updating your profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (status === 'loading') {
+  if (status === 'loading' || !isLoaded) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center">
@@ -120,95 +214,78 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="bio" className="block text-sm font-medium text-dark-100 mb-1">
-                      Bio
+                    <label htmlFor="phone" className="block text-sm font-medium text-dark-100 mb-1">
+                      Phone
                     </label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      value={formData.bio}
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleChange}
-                      rows={3}
                       className="input w-full"
-                      placeholder="Tell us about yourself"
+                      placeholder="Your phone number"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="location" className="block text-sm font-medium text-dark-100 mb-1">
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        className="input w-full"
-                        placeholder="City, Country"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="website" className="block text-sm font-medium text-dark-100 mb-1">
-                        Website
-                      </label>
-                      <input
-                        type="text"
-                        id="website"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                        className="input w-full"
-                        placeholder="https://example.com"
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="gender" className="block text-sm font-medium text-dark-100 mb-1">
+                      Gender
+                    </label>
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="input w-full"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="non-binary">Non-binary</option>
+                      <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-dark-100 mb-1">
+                      Resume
+                    </label>
+                    <FileUpload
+                      accept=".pdf,.doc,.docx"
+                      maxSize={10 * 1024 * 1024} // 10MB
+                      onChange={(files) => {
+                        if (files.length > 0) {
+                          setFormData({
+                            ...formData, 
+                            resume: files[0]
+                          });
+                        }
+                      }}
+                      helperText="PDF, DOC, DOCX up to 10MB"
+                    />
                   </div>
 
                   <div className="pt-4">
-                    <button type="submit" className="btn btn-primary">
-                      Save Profile
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save Profile'}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    {session.user?.name || session.user?.email?.split('@')[0] || 'User'}
-                  </h1>
-                  <p className="text-dark-300 mt-1">{session.user?.email}</p>
-
-                  <div className="mt-6 space-y-4">
-                    <div>
-                      <h2 className="text-lg font-medium text-white mb-2">About</h2>
-                      <p className="text-dark-200">
-                        {formData.bio || 'No bio provided yet. Click "Edit Profile" to add one.'}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h2 className="text-lg font-medium text-white mb-2">Location</h2>
-                        <p className="text-dark-200">
-                          {formData.location || 'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-medium text-white mb-2">Website</h2>
-                        {formData.website ? (
-                          <a
-                            href={formData.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-400 hover:text-primary-300 transition-colors"
-                          >
-                            {formData.website}
-                          </a>
-                        ) : (
-                          <p className="text-dark-200">Not specified</p>
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-6">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">
+                      {formData.name || session.user?.name || session.user?.email?.split('@')[0] || 'User'}
+                    </h1>
+                    <p className="text-dark-300 mt-1">{session.user?.email}</p>
+                    {formData.phone && (
+                      <p className="text-dark-300 mt-1">{formData.phone}</p>
+                    )}
                   </div>
                 </div>
               )}

@@ -18,18 +18,18 @@ export default function ChatSidebar() {
       date: 'Today',
       isActive: true,
     },
-    {
-      id: '2',
-      title: 'Resume review',
-      date: 'Yesterday',
-      isActive: false,
-    },
-    {
-      id: '3',
-      title: 'Interview preparation',
-      date: '2 days ago',
-      isActive: false,
-    },
+    // {
+    //   id: '2',
+    //   title: 'Resume review',
+    //   date: 'Yesterday',
+    //   isActive: false,
+    // },
+    // {
+    //   id: '3',
+    //   title: 'Interview preparation',
+    //   date: '2 days ago',
+    //   isActive: false,
+    // },
   ]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);

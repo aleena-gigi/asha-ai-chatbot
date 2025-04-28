@@ -2,6 +2,12 @@
 
 import React from 'react';
 
+// Type for match display
+interface MatchDisplay {
+  color: string;
+  text: string;
+}
+
 interface JobMatch {
   matching_score?: number;
   job_title: string;
@@ -19,10 +25,70 @@ interface StreamingJobCardProps {
 }
 
 const StreamingJobCard: React.FC<StreamingJobCardProps> = ({ job }) => {
+  // Function to get a vibrant gradient for the company logo background based on the first letter
+  const getGradientForCompany = (name: string) => {
+    const firstLetter = name.charAt(0).toLowerCase();
+    const gradients: Record<string, string> = {
+      'a': 'from-blue-400 to-purple-400',
+      'b': 'from-green-300 to-cyan-400',
+      'c': 'from-pink-400 to-rose-400',
+      'd': 'from-amber-300 to-orange-400',
+      'e': 'from-indigo-400 to-blue-400',
+      'f': 'from-emerald-300 to-teal-400',
+      'g': 'from-fuchsia-400 to-purple-500',
+      'h': 'from-sky-300 to-blue-500',
+      'i': 'from-violet-400 to-indigo-500',
+      'j': 'from-red-400 to-pink-500',
+      'k': 'from-yellow-300 to-amber-500',
+      'l': 'from-teal-300 to-emerald-500',
+      'm': 'from-blue-300 to-indigo-500',
+      'n': 'from-purple-400 to-violet-500',
+      'o': 'from-green-400 to-teal-500',
+      'p': 'from-orange-300 to-red-500',
+      'q': 'from-blue-400 to-sky-500',
+      'r': 'from-pink-300 to-purple-500',
+      's': 'from-emerald-300 to-green-500',
+      't': 'from-cyan-300 to-blue-500',
+      'u': 'from-amber-300 to-yellow-500',
+      'v': 'from-indigo-300 to-violet-500',
+      'w': 'from-rose-300 to-red-500',
+      'x': 'from-teal-300 to-cyan-500',
+      'y': 'from-purple-300 to-fuchsia-500',
+      'z': 'from-green-300 to-emerald-500'
+    };
+    
+    return gradients[firstLetter] || 'from-blue-400 to-purple-400';
+  };
+
+  // Get company initials for the logo
+  const getCompanyInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+    // Calculate the match color and text based on score
+  const getMatchDisplay = (score: number) => {
+    if (score > 80) return 'bg-gradient-to-r from-green-400 to-emerald-500 text-white';
+    if (score > 60) return 'bg-gradient-to-r from-green-300 to-teal-400 text-white';
+    if (score > 40) return 'bg-gradient-to-r from-yellow-300 to-amber-400 text-white';
+    return 'bg-gradient-to-r from-orange-300 to-red-400 text-white';
+  };
+  
   return (
-    <div className="bg-dark-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-dark-600 mb-4">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-lg font-semibold text-primary-500">{job.job_title}</h3>
+    <div className="bg-dark-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 border border-dark-600 mb-4 hover:border-primary-500/50 hover:-translate-y-1">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center space-x-2">
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getGradientForCompany(job.company_name)} flex items-center justify-center text-white font-bold text-sm shadow-md`}>
+            {getCompanyInitials(job.company_name)}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-primary-500">{job.job_title}</h3>
+          </div>
+        </div>
         {job.matching_score && (
           <span className={`text-xs px-2 py-1 rounded-full ${
             job.matching_score > 70 

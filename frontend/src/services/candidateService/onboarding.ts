@@ -4,22 +4,24 @@ import { CANDIDATE_UPDATE_URL, GET_CANDIDATE_DETAILS_URL, SIGN_UP_URL } from "..
  * Update candidate details
  * @param candidateEmail Email of the candidate
  * @param updatedData Updated candidate information
+ * @param resumeFile Optional resume file to upload
  * @returns Response from the API
  */
 export const updateCandidateDetails = async (
   candidateEmail: string,
-  updateData: any
+  updateData: any,
+  resumeFile?: File
 ) => {
   try {
     const formData = new FormData();
     
     // Add candidate data as JSON string
     formData.append('updated_data', JSON.stringify(updateData));
-    console.log('updateData:', `${CANDIDATE_UPDATE_URL}${candidateEmail}`);
+    
     // Add resume file if provided
-    // if (resumeFile) {
-    //   formData.append('resume_file', resumeFile);
-    // }
+    if (resumeFile) {
+      formData.append('resume_file', resumeFile);
+    }
     
     const response = await fetch(`${CANDIDATE_UPDATE_URL}${candidateEmail}`, {
       method: 'PUT',

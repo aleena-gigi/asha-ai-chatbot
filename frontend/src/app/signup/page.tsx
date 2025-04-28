@@ -298,15 +298,13 @@ export default function SignUp() {
         has_taken_break: formData.careerBreak,
         years_of_experience: formData.yearsOfExperience,
         onboarding_status: 'completed',
-        resume_data: resumeData,
       };
-      console.log('User data:', userData);
       let response;
       
       // For OAuth users, use updateCandidateDetails instead of signup
       if (formData.isOAuthUser) {
         try {
-          response = await updateCandidateDetails(formData.email, userData);
+          response = await updateCandidateDetails(formData.email, userData, formData.resume || undefined, resumeData);
           
           if (response?.status_code !== 200) {
             throw new Error('Failed to update candidate details');
@@ -318,17 +316,15 @@ export default function SignUp() {
         await updateSession();
         console.log('Session updated:', session);
       } else {
-        response = await candidateOnboarding(userData);
+        response = await candidateOnboarding(userData, formData.resume || undefined);
       }
       
       // Update the session to reflect that the profile is complete
       await updateSession();
       
-      // Ensure redirection happens after successful API response and session update
       router.push("/chat");
 
     } catch (error) {
-      console.error('Error submitting form:', error);
       alert('There was an error creating your account. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -807,12 +803,15 @@ export default function SignUp() {
                               <FileUpload
                                 accept=".pdf,.doc,.docx"
                                 maxSize={10 * 1024 * 1024} // 10MB
-                                onChange={(files) => {
-                                  if (files.length > 0) {
-                                    setFormData({
-                                      ...formData, 
-                                      resume: files[0],
-                                      useResumeBuilder: false
+                                onChange={(file) => {
+                                  if (file) {
+                                    setFormData((prevData) => {
+                                      const newData = {
+                                        ...prevData, 
+                                        resume: file,
+                                        useResumeBuilder: false
+                                      };
+                                      return newData;
                                     });
                                   }
                                 }}
@@ -847,6 +846,7 @@ export default function SignUp() {
                       type="submit"
                       className="btn btn-neon"
                       disabled={isSubmitting}
+                      onClick={handleSubmit}
                     >
                       {isSubmitting ? (
                         <span className="flex items-center">

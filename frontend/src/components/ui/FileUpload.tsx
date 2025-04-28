@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface FileUploadProps {
   label?: string;
@@ -6,8 +6,7 @@ interface FileUploadProps {
   error?: string;
   accept?: string;
   maxSize?: number; // in bytes
-  multiple?: boolean;
-  onChange?: (files: File[]) => void;
+  onChange?: (file: File | null) => void;
   className?: string;
 }
 
@@ -17,12 +16,11 @@ export default function FileUpload({
   error,
   accept,
   maxSize,
-  multiple = false,
   onChange,
   className = '',
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -37,22 +35,16 @@ export default function FileUpload({
     }
   };
   
-  const validateFiles = (files: FileList | null): File[] => {
-    if (!files) return [];
-    
-    const validFiles: File[] = [];
+  const validateFile = (file: File): boolean => {
     setSizeError(null);
     
-    Array.from(files).forEach(file => {
-      if (maxSize && file.size > maxSize) {
-        const sizeMB = maxSize / (1024 * 1024);
-        setSizeError(`File size exceeds the maximum limit of ${sizeMB} MB`);
-        return;
-      }
-      validFiles.push(file);
-    });
+    if (maxSize && file.size > maxSize) {
+      const sizeMB = maxSize / (1024 * 1024);
+      setSizeError(`File size exceeds the maximum limit of ${sizeMB} MB`);
+      return false;
+    }
     
-    return validFiles;
+    return true;
   };
   
   const handleDrop = (e: React.DragEvent) => {
@@ -60,21 +52,29 @@ export default function FileUpload({
     e.stopPropagation();
     setDragActive(false);
     
-    const validFiles = validateFiles(e.dataTransfer.files);
-    if (validFiles.length > 0) {
-      setSelectedFiles(multiple ? [...selectedFiles, ...validFiles] : [validFiles[0]]);
-      if (onChange) {
-        onChange(multiple ? [...selectedFiles, ...validFiles] : [validFiles[0]]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0]; // Only take the first file
+      
+      if (validateFile(file)) {
+        setSelectedFile(file);
+        
+        if (onChange) {
+          onChange(file);
+        }
       }
     }
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const validFiles = validateFiles(e.target.files);
-    if (validFiles.length > 0) {
-      setSelectedFiles(multiple ? [...selectedFiles, ...validFiles] : [validFiles[0]]);
-      if (onChange) {
-        onChange(multiple ? [...selectedFiles, ...validFiles] : [validFiles[0]]);
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]; // Only take the first file
+      
+      if (validateFile(file)) {
+        setSelectedFile(file);
+        
+        if (onChange) {
+          onChange(file);
+        }
       }
     }
   };
@@ -83,12 +83,16 @@ export default function FileUpload({
     inputRef.current?.click();
   };
   
-  const removeFile = (index: number) => {
-    const newFiles = [...selectedFiles];
-    newFiles.splice(index, 1);
-    setSelectedFiles(newFiles);
+  const removeFile = () => {
+    setSelectedFile(null);
+    
     if (onChange) {
-      onChange(newFiles);
+      onChange(null);
+    }
+    
+    // Reset the file input
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
   };
   
@@ -164,7 +168,7 @@ export default function FileUpload({
             onClick={handleButtonClick}
             className="mt-4 px-4 py-2 bg-primary-500/20 text-primary-400 rounded-lg hover:bg-primary-500/30 transition-colors"
           >
-            Select File{multiple ? 's' : ''}
+            Select File
           </button>
           
           <input
@@ -172,60 +176,58 @@ export default function FileUpload({
             type="file"
             className="hidden"
             accept={accept}
-            multiple={multiple}
+            multiple={false} // Always false to ensure only one file is uploaded
             onChange={handleChange}
           />
         </div>
       </div>
       
-      {/* Display selected files */}
-      {selectedFiles.length > 0 && (
+      {/* Display selected file */}
+      {selectedFile && (
         <div className="mt-4 space-y-2">
-          <p className="text-sm font-medium text-foreground/70">Selected Files:</p>
-          {selectedFiles.map((file, index) => (
-            <div key={index} className="flex items-center justify-between bg-dark-600 p-2 rounded-lg border border-dark-500">
-              <div className="flex items-center">
-                <svg 
-                  className="w-5 h-5 text-primary-500 mr-2" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium truncate max-w-xs">{file.name}</p>
-                  <p className="text-xs text-foreground/60">{formatFileSize(file.size)}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeFile(index)}
-                className="text-red-500 hover:text-red-700"
+          <p className="text-sm font-medium text-foreground/70">Selected File:</p>
+          <div className="flex items-center justify-between bg-dark-600 p-2 rounded-lg border border-dark-500">
+            <div className="flex items-center">
+              <svg 
+                className="w-5 h-5 text-primary-500 mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24" 
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M6 18L18 6M6 6l12 12" 
-                  />
-                </svg>
-              </button>
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-medium truncate max-w-xs">{selectedFile.name}</p>
+                <p className="text-xs text-foreground/60">{formatFileSize(selectedFile.size)}</p>
+              </div>
             </div>
-          ))}
+            <button
+              type="button"
+              onClick={removeFile}
+              className="text-red-500 hover:text-red-700"
+            >
+              <svg 
+                className="w-5 h-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M6 18L18 6M6 6l12 12" 
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
       

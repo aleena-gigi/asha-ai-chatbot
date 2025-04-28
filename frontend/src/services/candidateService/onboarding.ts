@@ -10,26 +10,25 @@ import { CANDIDATE_UPDATE_URL, GET_CANDIDATE_DETAILS_URL, SIGN_UP_URL } from "..
 export const updateCandidateDetails = async (
   candidateEmail: string,
   updateData: any,
-  resumeFile?: File
+  resumeFile?: File,
+  profileData?: any
 ) => {
   try {
     const formData = new FormData();
-    
     // Add candidate data as JSON string
-    formData.append('updated_data', JSON.stringify(updateData));
+    formData.append('candidate_data', JSON.stringify(updateData));
     
     // Add resume file if provided
     if (resumeFile) {
-      formData.append('resume_file', resumeFile);
+      formData.append('resume_data', resumeFile);
+    } else if(profileData) {
+      formData.append('profile_data', JSON.stringify(profileData));
     }
     
     const response = await fetch(`${CANDIDATE_UPDATE_URL}${candidateEmail}`, {
       method: 'PUT',
       body: formData,
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-      },
+      credentials: 'include'
     });
 
     if (!response.ok) {
@@ -64,20 +63,14 @@ export const candidateOnboarding = async (
     // Add resume file if provided
     if (resumeFile) {
       formData.append('resume_file', resumeFile);
-    }
-    
-    // Add profile data if provided
-    if (profileData) {
+    } else if (profileData) {
       formData.append('profile_data', JSON.stringify(profileData));
     }
 
     const response = await fetch(SIGN_UP_URL, {
       method: 'POST',
       body: formData,
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-      },
+      credentials: 'include'
     });
 
     if (!response.ok) {
@@ -87,52 +80,6 @@ export const candidateOnboarding = async (
     return await response.json();
   } catch (error) {
     console.error('Error during candidate onboarding with resume:', error);
-    throw error;
-  }
-};
-
-/**
- * Update candidate resume
- * @param candidateEmail Email of the candidate
- * @param resumeFile Optional new resume file to upload
- * @param profileData Optional updated profile information
- * @returns Response from the API
- */
-export const updateCandidate = async (
-  candidateEmail: string,
-  resumeFile?: File,
-  profileData?: any
-) => {
-  try {
-    const formData = new FormData();
-    
-    // Create updated data object
-    const updatedData = { ...profileData };
-    
-    // Add resume file if provided
-    if (resumeFile) {
-      formData.append('resume_file', resumeFile);
-    }
-    
-    // Add updated data as JSON string
-    formData.append('updated_data', JSON.stringify(updatedData));
-
-    const response = await fetch(`${CANDIDATE_UPDATE_URL}${candidateEmail}`, {
-      method: 'PUT',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error updating candidate resume:', error);
     throw error;
   }
 };

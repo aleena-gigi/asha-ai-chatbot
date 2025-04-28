@@ -1,10 +1,11 @@
 'use client';
 
-import { getCandidateDetails, updateCandidateDetails } from '@/services/candidateService/onboarding';
+import { updateCandidateDetails } from '@/services/candidateService/onboarding';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useCandidateData } from '@/context/CandidateContext';
 import { SuggestiveInput, SuggestiveTagInput } from '@/components/resume';
 import FileUpload from '@/components/ui/FileUpload';
 import { careerFieldSuggestions } from '@/data/careerFieldSuggestions';
@@ -31,39 +32,29 @@ export default function ProfilePage() {
     resume: null as File | null,
   });
 
-  // Fetch candidate details when component mounts
-  useEffect(() => {
-    const fetchCandidateDetails = async () => {
-      if (status === 'authenticated' && session?.user?.email) {
-        try {
-          const response = await getCandidateDetails(session.user.email);
-          if (response.status_code === 200 && response.data) {
-            const candidateData = response.data;
-            
-            // Map backend data to form fields
-            setFormData({
-              name: `${candidateData.first_name || ''} ${candidateData.last_name || ''}`.trim(),
-              email: candidateData.email || '',
-              phone: candidateData.phone || '',
-              gender: candidateData.gender || '',
-              interests: candidateData.interests || [],
-              preferredJobRoles: candidateData.preferred_job_roles || [],
-              currentlyEmployed: candidateData.currently_employed || false,
-              career: candidateData.current_career || '',
-              careerBreak: candidateData.has_taken_break || false,
-              yearsOfExperience: candidateData.years_of_experience || '',
-              resume: null,
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching candidate details:', error);
-        }
-      }
-      setIsLoaded(true);
-    };
+  // Get candidate data from context
+  const { candidateData, loading: contextLoading } = useCandidateData();
 
-    fetchCandidateDetails();
-  }, [session, status]);
+  useEffect(() => {
+    if (status === 'authenticated' && candidateData) {
+      setFormData({
+        name: `${candidateData?.data?.first_name || ''} ${candidateData?.data?.last_name || ''}`.trim(),
+        email: candidateData?.data?.email || '',
+        phone: candidateData?.data?.phone || '',
+        gender: candidateData?.data?.gender || '',
+        interests: candidateData?.data?.interests || [],
+        preferredJobRoles: candidateData?.data?.preferred_job_roles || [],
+        currentlyEmployed: candidateData?.data?.currently_employed || false,
+        career: candidateData?.data?.current_career || '',
+        careerBreak: candidateData?.data?.has_taken_break || false,
+        yearsOfExperience: candidateData?.data?.years_of_experience || '',
+        resume: null,
+      });
+      setIsLoaded(true);
+    } else if (status !== 'loading' && !contextLoading) {
+      setIsLoaded(true);
+    }
+  }, [candidateData, status, contextLoading]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -85,6 +76,12 @@ export default function ProfilePage() {
     e.preventDefault();
     
     if (isSubmitting) return; // Prevent multiple submissions
+    
+    // Check if resume file is provided
+    if (!formData.resume) {
+      alert('Please upload a resume file to update your profile.');
+      return;
+    }
     
     try {
       setIsSubmitting(true);
@@ -111,7 +108,8 @@ export default function ProfilePage() {
       const response = await updateCandidateDetails(
         session?.user?.email || '', 
         userData,
-        formData.resume || undefined
+        formData.resume || undefined,
+        undefined
       );
       
       if (response?.status_code !== 200) {
@@ -135,7 +133,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (status === 'loading' || !isLoaded) {
+  if (status === 'loading' || contextLoading || !isLoaded) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center">
@@ -229,36 +227,21 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-dark-100 mb-1">
-                      Gender
-                    </label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      className="input w-full"
-                    >
-                      <option value="">Select gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="non-binary">Non-binary</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
-
-                  <div>
                     <label className="block text-sm font-medium text-dark-100 mb-1">
                       Resume
                     </label>
                     <FileUpload
                       accept=".pdf,.doc,.docx"
                       maxSize={10 * 1024 * 1024} // 10MB
-                      onChange={(files) => {
-                        if (files.length > 0) {
-                          setFormData({
-                            ...formData, 
-                            resume: files[0]
+                      onChange={(file) => {
+                        if (file) {
+                          setFormData((prevData) => {
+                            const newData = {
+                              ...prevData, 
+                              resume: file,
+                              useResumeBuilder: false
+                            };
+                            return newData;
                           });
                         }
                       }}
@@ -270,10 +253,14 @@ export default function ProfilePage() {
                     <button 
                       type="submit" 
                       className="btn btn-primary"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !formData.resume}
+                      onClick={handleSubmit}
                     >
                       {isSubmitting ? 'Saving...' : 'Save Profile'}
                     </button>
+                    {!formData.resume && (
+                      <p className="mt-2 text-sm text-amber-500">Please upload a resume file to enable submission</p>
+                    )}
                   </div>
                 </form>
               ) : (

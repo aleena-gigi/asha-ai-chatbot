@@ -264,43 +264,75 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
   const isJobListingNodeResponse = (responseData: any): boolean => {
     return responseData && 
            typeof responseData === 'object' && 
-           responseData.job_listing_node_response && 
-           typeof responseData.job_listing_node_response === 'object' &&
-           responseData.job_listing_node_response.job_title &&
-           responseData.job_listing_node_response.company_name;
+           responseData.job_listing_node_response;
   };
   
+  // Helper function to normalize job listing data
+  const normalizeJobListing = (jobData: any): any => {
+    // If it's already a properly formatted job object, return it
+    if (jobData && typeof jobData === 'object' && jobData.job_title && jobData.company_name) {
+      // Ensure skills_matched is an array if it exists
+      if (jobData.skills_matched && !Array.isArray(jobData.skills_matched)) {
+        jobData.skills_matched = jobData.skills_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      // Ensure skills_not_matched is an array if it exists
+      if (jobData.skills_not_matched && !Array.isArray(jobData.skills_not_matched)) {
+        jobData.skills_not_matched = jobData.skills_not_matched.split(',').map((skill: string) => skill.trim());
+      }
+      
+      return jobData;
+    }
+    
+    // If it's a string or other format, try to parse it
+    if (typeof jobData === 'string') {
+      try {
+        const parsed = JSON.parse(jobData);
+        return normalizeJobListing(parsed);
+      } catch (e) {
+        // Not valid JSON, return empty object
+        return {};
+      }
+    }
+    
+    return {};
+  };
+
   // Handle array of objects (like multiple JSON objects in the response)
   if (Array.isArray(data)) {
     // Check if array contains job_listing_node_response objects
     const jobListingNodeResponses = data.filter(item => isJobListingNodeResponse(item));
     if (jobListingNodeResponses.length > 0) {
       const jobs = jobListingNodeResponses.map(item => {
-        const job = item.job_listing_node_response;
+        // Handle different possible formats of job_listing_node_response
+        const jobResponse = item.job_listing_node_response;
         
-        // Ensure skills_matched is an array if it exists
-        if (job.skills_matched && !Array.isArray(job.skills_matched)) {
-          job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+        // If it's an array of jobs
+        if (Array.isArray(jobResponse)) {
+          return jobResponse.map(job => normalizeJobListing(job));
         }
         
-        // Ensure skills_not_matched is an array if it exists
-        if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
-          job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+        // If it's a single job object
+        if (jobResponse && typeof jobResponse === 'object' && jobResponse.job_title) {
+          return normalizeJobListing(jobResponse);
         }
         
-        return job;
-      });
+        // If it's a string or other format
+        return normalizeJobListing(jobResponse);
+      }).flat().filter(job => job.job_title && job.company_name);
       
-      return (
-        <div className="bg-dark-800 p-6 rounded-xl">
-          <h3 className="text-xl font-bold text-white mb-4">Job Matches For You</h3>
-          <div className="grid grid-cols-1 gap-6">
-            {jobs.map((job, index) => (
-              <JobCard key={index} job={job} />
-            ))}
+      if (jobs.length > 0) {
+        return (
+          <div className="bg-dark-800 p-6 rounded-xl">
+            <h3 className="text-xl font-bold text-white mb-4">Job Matches For You</h3>
+            <div className="grid grid-cols-1 gap-6">
+              {jobs.map((job, index) => (
+                <JobCard key={index} job={job} />
+              ))}
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
     }
     
     // Check if array contains job_listing_generation_node_response objects
@@ -368,19 +400,61 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
   if (data && typeof data === 'object') {
     // Check if this is a job_listing_node_response
     if (isJobListingNodeResponse(data)) {
-      const job = data.job_listing_node_response;
+      const jobResponse = data.job_listing_node_response;
       
-      // Ensure skills_matched is an array if it exists
-      if (job.skills_matched && !Array.isArray(job.skills_matched)) {
-        job.skills_matched = job.skills_matched.split(',').map((skill: string) => skill.trim());
+      // If it's an array of jobs
+      if (Array.isArray(jobResponse)) {
+        const jobs = jobResponse.map(job => normalizeJobListing(job))
+          .filter(job => job.job_title && job.company_name);
+        
+        if (jobs.length > 0) {
+          return (
+            <div className="bg-dark-800 p-6 rounded-xl">
+              <h3 className="text-xl font-bold text-white mb-4">Job Matches For You</h3>
+              <div className="grid grid-cols-1 gap-6">
+                {jobs.map((job, index) => (
+                  <JobCard key={index} job={job} />
+                ))}
+              </div>
+            </div>
+          );
+        }
       }
       
-      // Ensure skills_not_matched is an array if it exists
-      if (job.skills_not_matched && !Array.isArray(job.skills_not_matched)) {
-        job.skills_not_matched = job.skills_not_matched.split(',').map((skill: string) => skill.trim());
+      // If it's a single job object
+      if (jobResponse && typeof jobResponse === 'object' && jobResponse.job_title) {
+        const job = normalizeJobListing(jobResponse);
+        return <JobCard job={job} />;
       }
       
-      return <JobCard job={job} />;
+      // If it's a string, try to parse it
+      if (typeof jobResponse === 'string') {
+        try {
+          const parsedJob = JSON.parse(jobResponse);
+          if (Array.isArray(parsedJob)) {
+            const jobs = parsedJob.map(job => normalizeJobListing(job))
+              .filter(job => job.job_title && job.company_name);
+            
+            if (jobs.length > 0) {
+              return (
+                <div className="bg-dark-800 p-6 rounded-xl">
+                  <h3 className="text-xl font-bold text-white mb-4">Job Matches For You</h3>
+                  <div className="grid grid-cols-1 gap-6">
+                    {jobs.map((job, index) => (
+                      <JobCard key={index} job={job} />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+          } else if (parsedJob && typeof parsedJob === 'object' && parsedJob.job_title) {
+            const job = normalizeJobListing(parsedJob);
+            return <JobCard job={job} />;
+          }
+        } catch (e) {
+          // Not valid JSON, continue to other checks
+        }
+      }
     }
     
     // Check if this is a job_listing_generation_node_response

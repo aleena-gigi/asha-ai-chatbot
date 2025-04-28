@@ -158,6 +158,18 @@ export default function ChatPage() {
                 
                 // If it's a job listing, add it to the job listings array
                 allJobListings.push(jobData);
+              } else if (jsonObj.job_listing_node_response) {
+                // Handle job_listing_node_response
+                const jobData = jsonObj.job_listing_node_response;
+                
+                // If it's an array of jobs
+                if (Array.isArray(jobData)) {
+                  allJobListings = [...allJobListings, ...jobData];
+                } 
+                // If it's a single job object
+                else if (jobData && typeof jobData === 'object') {
+                  allJobListings.push(jobData);
+                }
               } else if (jsonObj.greeting_generation_node_response) {
                 // If it's a greeting response, update the text
                 textResponse = jsonObj.greeting_generation_node_response;

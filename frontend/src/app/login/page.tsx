@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { login } from '@/lib/actions/auth-actions';
 
 export default function Login() {
   const router = useRouter();
+  const { data: session, update: updateSession } = useSession();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -50,6 +51,8 @@ export default function Login() {
       });
       
       if (result.success) {
+        // Update the session to reflect that the profile is complete
+        await updateSession();
         // Redirect to chat page on successful login
         router.push('/chat');
         router.refresh(); // Refresh to update auth state
@@ -177,7 +180,10 @@ export default function Login() {
               <div>
                 <button
                   type="button"
-                  onClick={() => signIn('google', { callbackUrl: '/chat' })}
+                  onClick={async () => {
+                    await signIn('google');
+                    // The session will be updated by the OAuthLoginHandler component
+                  }}
                   className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300 cursor-pointer"
                 >
                   <span className="sr-only">Sign in with Google</span>
@@ -190,7 +196,10 @@ export default function Login() {
               <div>
                 <button
                   type="button"
-                  onClick={() => signIn('github', { callbackUrl: '/chat' })}
+                  onClick={async () => {
+                    await signIn('github');
+                    // The session will be updated by the OAuthLoginHandler component
+                  }}
                   className="w-full inline-flex justify-center py-2 px-4 border border-dark-500 rounded-md bg-dark-600 text-sm font-medium text-dark-100 hover:bg-dark-500 transition-colors duration-300 cursor-pointer"
                 >
                   <span className="sr-only">Sign in with Github</span>

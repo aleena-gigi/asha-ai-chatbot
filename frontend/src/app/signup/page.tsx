@@ -320,7 +320,12 @@ export default function SignUp() {
       } else {
         response = await candidateOnboarding(userData);
       }
-      router.push("/chat")
+      
+      // Update the session to reflect that the profile is complete
+      await updateSession();
+      
+      // Ensure redirection happens after successful API response and session update
+      router.push("/chat");
 
     } catch (error) {
       console.error('Error submitting form:', error);

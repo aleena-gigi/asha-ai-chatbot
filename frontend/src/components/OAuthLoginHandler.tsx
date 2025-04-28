@@ -11,7 +11,7 @@ import { useCandidateData } from '@/context/CandidateContext';
  * It runs on the client side and is included in the chat page layout
  */
 export default function OAuthLoginHandler() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const { setCandidateData } = useCandidateData();
 
   useEffect(() => {
@@ -31,6 +31,11 @@ export default function OAuthLoginHandler() {
             // Set in context
             setCandidateData(candidateData);
             
+            // Update the session to reflect that the profile is complete
+            if (candidateData?.data?.onboarding_status === 'completed') {
+              await updateSession();
+            }
+            
             // Dispatch event to notify about candidate data availability
             window.dispatchEvent(new CustomEvent('authStateChanged', { 
               detail: { candidateData } 
@@ -47,7 +52,7 @@ export default function OAuthLoginHandler() {
     if (!storedCandidateData && session?.user?.email) {
       fetchCandidateData();
     }
-  }, [session, setCandidateData]);
+  }, [session, setCandidateData, updateSession]);
 
   // This component doesn't render anything
   return null;

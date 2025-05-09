@@ -6,8 +6,8 @@ import StreamingJobCard from './StreamingJobCard';
 interface JobMatch {
   matching_score?: number;
   job_title: string;
-  job_description: string;
-  job_location: string;
+  job_description?: string;
+  job_location?: string;
   company_name: string;
   skills_matched?: string[];
   skills_not_matched?: string[];

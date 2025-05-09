@@ -21,7 +21,8 @@ export const updateCandidateDetails = async (
     // Add resume file if provided
     if (resumeFile) {
       formData.append('resume_data', resumeFile);
-    } else if(profileData) {
+    } 
+    if(profileData) {
       formData.append('profile_data', JSON.stringify(profileData));
     }
     
@@ -63,7 +64,8 @@ export const candidateOnboarding = async (
     // Add resume file if provided
     if (resumeFile) {
       formData.append('resume_file', resumeFile);
-    } else if (profileData) {
+    } 
+    if (profileData) {
       formData.append('profile_data', JSON.stringify(profileData));
     }
 

@@ -11,8 +11,8 @@ interface MatchDisplay {
 interface JobMatch {
   matching_score?: number;
   job_title: string;
-  job_description: string;
-  job_location: string;
+  job_description?: string;
+  job_location?: string;
   company_name: string;
   skills_matched?: string[];
   skills_not_matched?: string[];
@@ -71,7 +71,8 @@ const StreamingJobCard: React.FC<StreamingJobCardProps> = ({ job }) => {
   };
 
     // Calculate the match color and text based on score
-  const getMatchDisplay = (score: number) => {
+  const getMatchDisplay = (score: number | undefined) => {
+    if (!score) return 'bg-gradient-to-r from-blue-400 to-indigo-500 text-white'; // Default for undefined
     if (score > 80) return 'bg-gradient-to-r from-green-400 to-emerald-500 text-white';
     if (score > 60) return 'bg-gradient-to-r from-green-300 to-teal-400 text-white';
     if (score > 40) return 'bg-gradient-to-r from-yellow-300 to-amber-400 text-white';
@@ -89,17 +90,17 @@ const StreamingJobCard: React.FC<StreamingJobCardProps> = ({ job }) => {
             <h3 className="text-lg font-semibold text-primary-500">{job.job_title}</h3>
           </div>
         </div>
-        {job.matching_score && (
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            job.matching_score > 70 
+        <span className={`text-xs px-2 py-1 rounded-full ${
+          !job.matching_score
+            ? 'bg-blue-500/20 text-blue-400'
+            : job.matching_score > 70 
               ? 'bg-green-500/20 text-green-400' 
               : job.matching_score > 40 
                 ? 'bg-yellow-500/20 text-yellow-400' 
                 : 'bg-red-500/20 text-red-400'
-          }`}>
-            {job.matching_score}% Match
-          </span>
-        )}
+        }`}>
+          {job.matching_score ? `${job.matching_score}% Match` : 'Potential Match'}
+        </span>
       </div>
       
       <div className="mb-3">

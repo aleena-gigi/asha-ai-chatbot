@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, useEffect, useContext } from 'react';
 import { 
   ResumeSection, 
   SectionNavItem, 
@@ -11,6 +11,9 @@ import {
   TagInput
 } from '@/components/resume';
 import { submitResumeForm } from '@/services/resume';
+import { updateCandidateDetails } from '@/services/candidateService/onboarding';
+import { useCandidateData } from '@/context/CandidateContext';
+import { useRouter } from 'next/navigation';
 
 export interface ResumeBuilderProps {
   initialData?: {
@@ -66,6 +69,8 @@ const ResumeBuilder = forwardRef<ResumeBuilderRef, ResumeBuilderProps>(({
   submitButtonText = "Generate Resume",
   showSubmitButton = true
 }, ref) => {
+  const router = useRouter();
+  const { candidateData } = useCandidateData();
   const [activeSection, setActiveSection] = useState('personal');
   const [formData, setFormData] = useState({
     personal: {
@@ -107,6 +112,90 @@ const ResumeBuilder = forwardRef<ResumeBuilderRef, ResumeBuilderProps>(({
     }] as LanguageEntry[]
   });
 
+  // Helper function to convert date format from MM/yyyy to yyyy-MM
+  const convertDateFormat = (dateStr: string | undefined): string => {
+    if (!dateStr) return '';
+    
+    // Check if the date is already in yyyy-MM format
+    if (/^\d{4}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    
+    // Try to convert from MM/yyyy format
+    const parts = dateStr.split('/');
+    if (parts.length === 2) {
+      const month = parts[0].padStart(2, '0');
+      const year = parts[1];
+      return `${year}-${month}`;
+    }
+    
+    return '';
+  };
+
+  // Initialize form data with candidate data when component mounts or candidateData changes
+  useEffect(() => {
+    if (candidateData) {
+      console.log("Populating form with candidate data:", candidateData);
+      const resumeData = candidateData.resume_data || candidateData.profile_data;
+      
+      if (resumeData) {
+        const basicInfo = resumeData.basic_info || {};
+        const projects = resumeData.projects || [];
+        const workExperience = resumeData.work_experience || [];
+        const tags = resumeData.tags?.tags || [];
+        
+        // Initialize personal information
+        setFormData(prevData => ({
+          ...prevData,
+          personal: {
+            name: basicInfo.name || prevData.personal.name,
+            email: basicInfo.email || candidateData.email || prevData.personal.email,
+            phone: basicInfo.phone || candidateData.phone || prevData.personal.phone,
+            location: basicInfo.location || prevData.personal.location,
+          },
+          // Initialize summary from bio or designation
+          summary: {
+            text: basicInfo.bio || basicInfo.designation || prevData.summary.text,
+          },
+          // Initialize education
+          education: basicInfo.educational_institution ? [
+            {
+              id: 1,
+              degree: basicInfo.educational_qualification || '',
+              institution: basicInfo.educational_institution || '',
+              startDate: '',
+              endDate: convertDateFormat(basicInfo.course_completetion_year || basicInfo.course_completion_year),
+            }
+          ] : prevData.education,
+          // Initialize work experience
+          experience: workExperience.length > 0 
+            ? workExperience.map((exp: any, index: number) => ({
+                id: index + 1,
+                jobTitle: exp.job_title || '',
+                employer: exp.company_name || '',
+                startDate: convertDateFormat(exp.start_date),
+                endDate: convertDateFormat(exp.end_date),
+                description: Array.isArray(exp.responsibilites) 
+                  ? exp.responsibilites.join('\n\n') 
+                  : (exp.description || ''),
+              }))
+            : prevData.experience,
+          // Initialize skills
+          skills: tags.length > 0 ? tags : prevData.skills,
+          // Initialize projects
+          projects: projects.length > 0
+            ? projects.map((proj: any, index: number) => ({
+                id: index + 1,
+                title: proj.title || `Project ${index + 1}`,
+                link: proj.link || '',
+                description: proj.project_description || '',
+              }))
+            : prevData.projects,
+        }));
+      }
+    }
+  }, [candidateData]);
+
   // Expose the form data to the parent component
   useImperativeHandle(ref, () => ({
     getFormData: () => formData
@@ -119,33 +208,63 @@ const ResumeBuilder = forwardRef<ResumeBuilderRef, ResumeBuilderProps>(({
     }
     
     try {
-      // If no onSubmit prop is provided, use the resume service to submit the form
-      // This would typically be wrapped in authentication logic to get the user ID
-      const userId = "current-user-id"; // This would come from auth context or similar
-      
-      // Show loading state
-      // setIsSubmitting(true);
-      
-      // Submit the form data
-      const response = await submitResumeForm(formData, userId);
-      
-      // Handle success
-      if (response.success) {
-        // Show success message
-        alert("Resume submitted successfully!");
+      if (candidateData && candidateData.email) {
+        console.log("Submitting form with candidate data:", candidateData.email);
+        // Prepare the profile data structure
+        const profileData = {
+          basic_info: {
+            name: formData.personal.name,
+            bio: formData.summary.text,
+            designation: '', // Could be extracted from experience if needed
+            experiences: '',
+            location: formData.personal.location,
+            phone: formData.personal.phone,
+            email: formData.personal.email,
+            linkedin: candidateData.resume_data?.basic_info?.linkedin || '',
+            github: candidateData.resume_data?.basic_info?.github || null,
+            educational_institution: formData.education[0]?.institution || '',
+            educational_qualification: formData.education[0]?.degree || '',
+            course_completetion_year: formData.education[0]?.endDate || '',
+          },
+          projects: formData.projects.map(project => ({
+            project_description: project.description,
+            title: project.title,
+            link: project.link
+          })),
+          work_experience: formData.experience.map(exp => ({
+            company_name: exp.employer,
+            job_title: exp.jobTitle,
+            start_date: exp.startDate,
+            end_date: exp.endDate,
+            responsibilites: exp.description.split('\n\n').filter(Boolean)
+          })),
+          tags: {
+            tags: formData.skills
+          },
+          candidate_email: candidateData.email
+        };
         
-        // Optionally redirect to a success page or resume view
-        // router.push(`/resume/${response.resume_id}`);
-      } else {
-        // Show error message
-        alert(`Error: ${response.message}`);
+        // Update both candidate data and profile data
+        const response = await updateCandidateDetails(
+          candidateData.email,
+          candidateData, // Keep the original candidate data
+          undefined, // No resume file
+          profileData // Updated profile data
+        );
+        
+        // Handle success
+        if (response) {
+          // Show success message
+          router.push('/chat');          
+          alert("Resume updated successfully!");
+        } else {
+          // Show error message
+          alert("Error updating resume");
+        }
       }
     } catch (error) {
       // Show error message
       alert(`Error submitting resume: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      // Hide loading state
-      // setIsSubmitting(false);
     }
   };
 

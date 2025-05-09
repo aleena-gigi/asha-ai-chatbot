@@ -2,10 +2,10 @@ import Link from 'next/link'
 import React, { useState } from 'react'
 
 interface JobListing {
-  matching_score: number;
+  matching_score?: number;
   job_title: string;
-  job_description: string;
-  job_location: string;
+  job_description?: string;
+  job_location?: string;
   company_name: string;
   skills_matched?: string[];
   skills_not_matched?: string[];
@@ -72,7 +72,8 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
   };
 
   // Calculate the match color and text based on score
-  const getMatchDisplay = (score: number) => {
+  const getMatchDisplay = (score: number | undefined) => {
+    if (!score) return 'bg-gradient-to-r from-blue-400 to-indigo-500 text-white'; // Default for undefined
     if (score > 80) return 'bg-gradient-to-r from-green-400 to-emerald-500 text-white';
     if (score > 60) return 'bg-gradient-to-r from-green-300 to-teal-400 text-white';
     if (score > 40) return 'bg-gradient-to-r from-yellow-300 to-amber-400 text-white';
@@ -80,7 +81,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
   };
   
   // Function to truncate text and add "..." if needed
-  const truncateText = (text: string, maxLength: number) => {
+  const truncateText = (text: string | undefined, maxLength: number) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -115,7 +116,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         </div>
         <div>
           <span className={`px-3 py-2 rounded-full font-medium ${getMatchDisplay(job.matching_score)}`}>
-            {job.matching_score}% Match
+            {job.matching_score ? `${job.matching_score}% Match` : 'Potential Match'}
           </span>
         </div>
       </div>

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { api } from '@/services/api';
+import { useCandidateData } from '@/context/CandidateContext';
 
 interface ChatSession {
   id: string;
@@ -11,26 +13,60 @@ interface ChatSession {
 }
 
 export default function ChatSidebar() {
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([
-    {
-      id: '1',
-      title: 'Job search strategies',
-      date: 'Today',
-      isActive: true,
-    },
-    // {
-    //   id: '2',
-    //   title: 'Resume review',
-    //   date: 'Yesterday',
-    //   isActive: false,
-    // },
-    // {
-    //   id: '3',
-    //   title: 'Interview preparation',
-    //   date: '2 days ago',
-    //   isActive: false,
-    // },
-  ]);
+  const { candidateData } = useCandidateData();
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch conversation sessions when component mounts and candidateData is available
+    const fetchConversations = async () => {
+      if (!candidateData?.email) return;
+      
+      try {
+        setLoading(true);
+        const response = await api.chat.getAllConversations(candidateData.email);
+        
+        if (response.status === 'success' && response.data) {
+          // Transform the API response into ChatSession format
+          const sessions = response.data.map((conversation: any) => {
+            // Get the last message from conversation history if available
+            const lastMessage = conversation.conversation_history && 
+                               conversation.conversation_history.length > 0 ? 
+                               conversation.conversation_history[conversation.conversation_history.length - 1] : null;
+            
+            // Create a title from the first user message or use default
+            let title = 'New conversation';
+            if (lastMessage && lastMessage.sender === 'user') {
+              // Truncate long messages for the title
+              title = lastMessage.text.length > 30 ? 
+                     lastMessage.text.substring(0, 30) + '...' : 
+                     lastMessage.text;
+            }
+            
+            // Format the date
+            const date = lastMessage && lastMessage.timestamp ? 
+                        new Date(lastMessage.timestamp).toLocaleDateString() : 
+                        'Today';
+            
+            return {
+              id: conversation.session_id,
+              title: title,
+              date: date,
+              isActive: false, // Set active based on current route in a real app
+            };
+          });
+          
+          setChatSessions(sessions);
+        }
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConversations();
+  }, [candidateData]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -39,9 +75,17 @@ export default function ChatSidebar() {
   };
 
   const startNewChat = () => {
-    // In a real app, this would create a new chat session
+    if (!candidateData?.email) {
+      console.warn('Cannot start new chat: No candidate data available');
+      return;
+    }
+    
+    // Generate a new session ID
+    const sessionId = `session-${Date.now()}`;
+    
+    // Create a new chat session
     const newChat: ChatSession = {
-      id: Date.now().toString(),
+      id: sessionId,
       title: 'New conversation',
       date: 'Just now',
       isActive: true,
@@ -55,6 +99,9 @@ export default function ChatSidebar() {
     
     // Add the new chat to the beginning of the list
     setChatSessions([newChat, ...updatedSessions]);
+    
+    // Redirect to the new chat
+    window.location.href = `/chat/${sessionId}`;
   };
 
   return (

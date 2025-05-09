@@ -64,19 +64,22 @@ export async function login(formData: LoginFormData) {
     
     // Store candidate data in localStorage for immediate access
     if (userResponse.data) {
-      localStorage.setItem('candidateData', JSON.stringify(userResponse.data));
+      localStorage.setItem('candidateData', JSON.stringify(userResponse));
+      
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify({ email }));
       
       // Set candidate data in the context if the setter is available
       if (globalSetCandidateData) {
-        globalSetCandidateData(userResponse.data);
+        globalSetCandidateData(userResponse);
       } else {
-        console.warn('Cannot set candidate data in context: setter not registered');
+        console.warn('auth-actions: Cannot set candidate data in context: setter not registered');
       }
     }
     
     // Dispatch event to notify about auth state change and candidate data availability
     window.dispatchEvent(new CustomEvent('authStateChanged', { 
-      detail: { candidateData: userResponse.data } 
+      detail: { candidateData: userResponse } 
     }));
     
     return {

@@ -121,28 +121,49 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ data }) => {
   // Helper function to extract job listings from the response
   const extractJobListings = (responseData: any): any[] => {
     if (Array.isArray(responseData)) {
-      // If it's already an array, normalize the job objects
-      return responseData.map(job => {
-        // Check if this is a streaming job match format
-        if (job.job_title && job.company_name && (job.matching_score !== undefined || job.skills_matched)) {
-          // Return as is, it's already in the right format for StreamingJobGrid
-          return job;
-        }
-        
-        // Traditional job listing format
-        return {
-          title: job.title || job.job_title || 'Unknown Position',
-          company: job.company || job.company_name || 'Unknown Company',
-          location: job.location || 'Location not specified',
-          job_type: job.job_type || job.type,
-          description: job.description,
-          requirements: job.requirements,
-          application_url: job.application_url || job.url,
-          posted_date: job.posted_date,
-          salary_range: job.salary_range || job.salary,
-          is_remote: job.is_remote || job.remote || false
-        };
-      });
+      // If it's already an array, normalize the job objects and filter out invalid ones
+      return responseData
+        .map(job => {
+          try {
+            // Check if this is a streaming job match format
+            if (job && job.job_title && job.company_name && 
+                (job.matching_score !== undefined || job.skills_matched)) {
+              // Ensure required fields exist
+              return {
+                ...job,
+                job_title: job.job_title || 'Unknown Position',
+                company_name: job.company_name || 'Unknown Company',
+                job_location: job.job_location || 'Location not specified',
+                job_description: job.job_description || 'No description available',
+                matching_score: job.matching_score || 50, // Default score if missing
+                skills_matched: Array.isArray(job.skills_matched) ? job.skills_matched : 
+                               (job.skills_matched ? [job.skills_matched] : []),
+                skills_not_matched: Array.isArray(job.skills_not_matched) ? job.skills_not_matched : 
+                                   (job.skills_not_matched ? [job.skills_not_matched] : [])
+              };
+            }
+            
+            // Traditional job listing format
+            return {
+              job_title: job.title || job.job_title || 'Unknown Position',
+              company_name: job.company || job.company_name || 'Unknown Company',
+              job_location: job.location || job.job_location || 'Location not specified',
+              job_type: job.job_type || job.type || 'Full-time',
+              job_description: job.description || job.job_description || 'No description available',
+              job_responsibilites: job.responsibilities || job.job_responsibilites || '',
+              job_url: job.application_url || job.url || job.job_url || '',
+              matching_score: job.matching_score || 50, // Default score if missing
+              skills_matched: Array.isArray(job.skills_matched) ? job.skills_matched : 
+                             (job.skills_matched ? [job.skills_matched] : []),
+              skills_not_matched: Array.isArray(job.skills_not_matched) ? job.skills_not_matched : 
+                                 (job.skills_not_matched ? [job.skills_not_matched] : [])
+            };
+          } catch (error) {
+            console.error('Error normalizing job listing:', error, job);
+            return null;
+          }
+        })
+        .filter(job => job !== null && job.job_title && job.company_name); // Filter out null or invalid jobs
     }
     
     // Check if it's an object with a jobs array

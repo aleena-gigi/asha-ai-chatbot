@@ -1,3 +1,5 @@
+import { GENERATE_RESPONSE_URL, GET_ALL_SESSIONS_URL } from "./apiUrls";
+
 // API base URLs
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 const NEXT_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -113,6 +115,34 @@ export interface MentorshipProgram {
 export const api = {
   // Chat API
   chat: {
+    getAllConversations: async (email_id: string, session_id?: string): Promise<any> => {
+      try {
+        console.log("encode", encodeURIComponent(email_id));
+        let url = `${GET_ALL_SESSIONS_URL}${encodeURIComponent(email_id)}`;
+        
+        // Add session_id to the URL if provided
+        if (session_id) {
+          url += `&session_id=${encodeURIComponent(session_id)}`;
+        }
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error getting conversations:', error);
+        throw error;
+      }
+    },
     generateResponse: async (message: string, candidateData?: any): Promise<any> => {
       try {
         // Validate candidate data
@@ -154,7 +184,7 @@ export const api = {
         console.log('Profile data size:', profile_data.length, 'bytes');
         
         // The backend expects query, email_id, session_id, and profile_data parameters
-        const response = await fetch(`https://d7a1-103-178-204-113.ngrok-free.app/agents/generateResponse?query=${encodeURIComponent(message)}&email_id=${encodeURIComponent(email_id)}&session_id=${encodeURIComponent(session_id)}&profile_data=${encodeURIComponent(profile_data)}`, {
+        const response = await fetch(`${GENERATE_RESPONSE_URL}${encodeURIComponent(message)}&email_id=${encodeURIComponent(email_id)}&session_id=${encodeURIComponent(session_id)}&profile_data=${encodeURIComponent(profile_data)}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

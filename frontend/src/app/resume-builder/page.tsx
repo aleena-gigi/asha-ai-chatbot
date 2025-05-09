@@ -1,18 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ResumeBuilder, ResumeUploader } from '@/components/resume';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function ResumeBuilderPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'build' | 'upload'>('build');
-  
-  const handleSubmit = (resumeData: any) => {
-    alert('Your ATS-friendly resume has been created successfully!');
-    router.push('/chat');
-  };
-  
   const handleUploadSuccess = (response: any) => {
     alert('Your resume has been uploaded and parsed successfully!');
     router.push('/chat');
@@ -36,23 +30,14 @@ export default function ResumeBuilderPage() {
           >
             Build Resume
           </button>
-          <button
-            className={`py-2 px-4 font-medium text-sm focus:outline-none ${
-              activeTab === 'upload'
-                ? 'text-primary-500 border-b-2 border-primary-500'
-                : 'text-gray-400 hover:text-gray-300'
-            }`}
-            onClick={() => setActiveTab('upload')}
-          >
-            Upload Resume
-          </button>
+         
         </div>
         
         {/* Tab Content */}
         {activeTab === 'build' ? (
           <ResumeBuilder 
-            onSubmit={handleSubmit}
-            submitButtonText="Generate Resume"
+            // onSubmit={handleSubmit}
+            submitButtonText="Update Resume"
           />
         ) : (
           <ResumeUploader 

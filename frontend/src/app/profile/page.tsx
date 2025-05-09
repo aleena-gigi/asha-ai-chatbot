@@ -30,31 +30,42 @@ export default function ProfilePage() {
     careerBreak: false,
     yearsOfExperience: '',
     resume: null as File | null,
+    useResumeBuilder: false,
   });
 
   // Get candidate data from context
-  const { candidateData, loading: contextLoading } = useCandidateData();
+  const { candidateData, loading: contextLoading, refreshCandidateData } = useCandidateData();
 
   useEffect(() => {
-    if (status === 'authenticated' && candidateData) {
-      setFormData({
-        name: `${candidateData?.data?.first_name || ''} ${candidateData?.data?.last_name || ''}`.trim(),
-        email: candidateData?.data?.email || '',
-        phone: candidateData?.data?.phone || '',
-        gender: candidateData?.data?.gender || '',
-        interests: candidateData?.data?.interests || [],
-        preferredJobRoles: candidateData?.data?.preferred_job_roles || [],
-        currentlyEmployed: candidateData?.data?.currently_employed || false,
-        career: candidateData?.data?.current_career || '',
-        careerBreak: candidateData?.data?.has_taken_break || false,
-        yearsOfExperience: candidateData?.data?.years_of_experience || '',
-        resume: null,
-      });
-      setIsLoaded(true);
+    
+    if (status === 'authenticated') {
+      if (candidateData) {
+        // Extract the actual data, handling both direct data and nested data structure
+        const userData = candidateData.data || candidateData;
+        
+        setFormData({
+          name: `${userData?.first_name || ''} ${userData?.last_name || ''}`.trim(),
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          gender: userData?.gender || '',
+          interests: userData?.interests || [],
+          preferredJobRoles: userData?.preferred_job_roles || [],
+          currentlyEmployed: userData?.currently_employed || false,
+          career: userData?.current_career || '',
+          careerBreak: userData?.has_taken_break || false,
+          yearsOfExperience: userData?.years_of_experience || '',
+          resume: null,
+          useResumeBuilder: false,
+        });
+        setIsLoaded(true);
+      } else if (session?.user?.email) {
+        // If we have a session but no candidate data, try to fetch it
+        refreshCandidateData(session.user.email);
+      }
     } else if (status !== 'loading' && !contextLoading) {
       setIsLoaded(true);
     }
-  }, [candidateData, status, contextLoading]);
+  }, [candidateData, status, contextLoading, session, refreshCandidateData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -77,8 +88,8 @@ export default function ProfilePage() {
     
     if (isSubmitting) return; // Prevent multiple submissions
     
-    // Check if resume file is provided
-    if (!formData.resume) {
+    // Check if resume file is provided when not using resume builder
+    if (!formData.useResumeBuilder && !formData.resume) {
       alert('Please upload a resume file to update your profile.');
       return;
     }
@@ -104,12 +115,15 @@ export default function ProfilePage() {
         years_of_experience: formData.yearsOfExperience,
       };
       
+      let resumeFile = formData.resume || undefined;
+      let profileData = candidateData?.resume_data
+      
       // Update candidate details
       const response = await updateCandidateDetails(
         session?.user?.email || '', 
         userData,
-        formData.resume || undefined,
-        undefined
+        resumeFile,
+        profileData
       );
       
       if (response?.status_code !== 200) {
@@ -226,39 +240,78 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-dark-100 mb-1">
-                      Resume
-                    </label>
-                    <FileUpload
-                      accept=".pdf,.doc,.docx"
-                      maxSize={10 * 1024 * 1024} // 10MB
-                      onChange={(file) => {
-                        if (file) {
-                          setFormData((prevData) => {
-                            const newData = {
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-100 mb-2">
+                        Resume Option
+                      </label>
+                      <div className="flex space-x-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="resumeOption"
+                            checked={!formData.useResumeBuilder}
+                            onChange={() => setFormData(prev => ({ ...prev, useResumeBuilder: false }))}
+                            className="form-radio"
+                          />
+                          <span className="text-sm text-dark-100">Upload Resume</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="resumeOption"
+                            checked={formData.useResumeBuilder}
+                            onChange={() => setFormData(prev => ({ ...prev, useResumeBuilder: true, resume: null }))}
+                            className="form-radio"
+                          />
+                          <span className="text-sm text-dark-100">Build Resume</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {!formData.useResumeBuilder ? (
+                      <div>
+                        <label className="block text-sm font-medium text-dark-100 mb-1">
+                          Upload Resume
+                        </label>
+                        <FileUpload
+                          accept=".pdf,.doc,.docx"
+                          maxSize={10 * 1024 * 1024} // 10MB
+                          onChange={(file) => {
+                            setFormData((prevData) => ({
                               ...prevData, 
                               resume: file,
-                              useResumeBuilder: false
-                            };
-                            return newData;
-                          });
-                        }
-                      }}
-                      helperText="PDF, DOC, DOCX up to 10MB"
-                    />
+                            }));
+                          }}
+                          helperText="PDF, DOC, DOCX up to 10MB"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-dark-300 mb-2">
+                          You've selected to build your resume. Your profile information will be used to create your resume.
+                        </p>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline"
+                          onClick={() => router.push('/resume-builder')}
+                        >
+                          Go to Resume Builder
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4">
                     <button 
                       type="submit" 
                       className="btn btn-primary"
-                      disabled={isSubmitting || !formData.resume}
+                      disabled={isSubmitting || (!formData.useResumeBuilder && !formData.resume)}
                       onClick={handleSubmit}
                     >
                       {isSubmitting ? 'Saving...' : 'Save Profile'}
                     </button>
-                    {!formData.resume && (
+                    {!formData.useResumeBuilder && !formData.resume && (
                       <p className="mt-2 text-sm text-amber-500">Please upload a resume file to enable submission</p>
                     )}
                   </div>
